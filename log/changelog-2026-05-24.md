@@ -36,3 +36,9 @@
 - Rewired the vanilla example to use the same browser WASM speech stack as the reference module: Transformers.js `onnx-community/distil-small.en` q4 STT and Piper `en_US-hfc_female-medium` TTS.
 - Removed the Web Speech API adapter from the public package surface so the default TTS fallback is no-op rather than `speechSynthesis`.
 - Added typed DOM helpers and scenario JSDoc so the shipped vanilla example stays diagnostic-clean while remaining plain JavaScript.
+
+## GitHub Pages landing page
+
+- Delegated the landing page UI/UX direction to Claude Code and implemented the resulting dark-first static design with relative asset paths for project Pages.
+- Added a build step that publishes `site/`, `dist/`, `examples/`, and `docs/` into `_site/` so GitHub Pages can host the landing page and working vanilla example without committing generated bundles.
+- Added a GitHub Pages Actions workflow using the current Pages artifact/deploy pattern because this repo needs a custom build rather than a branch-only static folder.

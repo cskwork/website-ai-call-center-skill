@@ -1,8 +1,11 @@
 node_modules/
 dist/
+_site/
 coverage/
 .DS_Store
 .env
 .env.*
 !.env.example
 .serena/
+.bkit/
+.omx/
