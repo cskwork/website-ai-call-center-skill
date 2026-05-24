@@ -1,19 +1,250 @@
-.waicc-root { --waicc-bg: #0f172a; --waicc-card: #ffffff; --waicc-accent: #2563eb; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-.waicc-fab { position: fixed; right: 1rem; bottom: 1rem; z-index: 2147483000; border: 0; border-radius: 999px; padding: .8rem 1rem; background: var(--waicc-accent); color: white; box-shadow: 0 12px 35px rgb(15 23 42 / .28); cursor: pointer; }
-.waicc-panel { position: fixed; right: 1rem; bottom: 1rem; z-index: 2147483001; width: min(24rem, calc(100vw - 2rem)); max-height: min(42rem, calc(100vh - 2rem)); display: grid; gap: .75rem; padding: 1rem; border-radius: 1.25rem; background: var(--waicc-card); color: #0f172a; box-shadow: 0 24px 70px rgb(15 23 42 / .32); }
-.waicc-panel[hidden], .waicc-fab[hidden] { display: none; }
-.waicc-header, .waicc-controls { display: flex; align-items: center; gap: .5rem; justify-content: space-between; }
-.waicc-close, .waicc-controls button, .waicc-actions button { border: 1px solid #cbd5e1; border-radius: .75rem; background: white; color: #0f172a; padding: .55rem .7rem; cursor: pointer; }
-.waicc-controls { flex-wrap: wrap; justify-content: flex-start; }
-.waicc-status { border-radius: .75rem; background: #eff6ff; color: #1d4ed8; padding: .5rem .7rem; font-size: .9rem; }
-.waicc-progress { height: .45rem; overflow: hidden; border-radius: 999px; background: #e2e8f0; }
-.waicc-progress span { display: block; width: 0; height: 100%; background: linear-gradient(90deg, #2563eb, #22c55e); transition: width .25s ease; }
-.waicc-messages { display: grid; gap: .5rem; overflow: auto; max-height: 13rem; }
-.waicc-message { margin: 0; padding: .65rem .75rem; border-radius: .9rem; background: #f8fafc; }
-.waicc-user { margin-left: 2rem; background: #dbeafe; }
-.waicc-assistant { margin-right: 2rem; background: #f1f5f9; }
-.waicc-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
-.waicc-label { display: grid; gap: .35rem; font-size: .85rem; color: #475569; }
-.waicc-input { min-height: 4.5rem; resize: vertical; border: 1px solid #cbd5e1; border-radius: .9rem; padding: .75rem; font: inherit; }
-.waicc-highlight { outline: 4px solid #f59e0b; outline-offset: 4px; transition: outline-color .2s ease; }
-@media (prefers-reduced-motion: reduce) { .waicc-progress span, .waicc-highlight { transition: none; } }
+.waicc-root {
+  --waicc-bg: rgba(9, 13, 26, 0.65);
+  --waicc-card-bg: rgba(255, 255, 255, 0.03);
+  --waicc-border: 1px solid rgba(255, 255, 255, 0.08);
+  --waicc-text: #f3f4f6;
+  --waicc-muted: #9ca3af;
+  --waicc-accent: #06b6d4;
+  --waicc-accent-glow: rgba(6, 182, 212, 0.35);
+  --waicc-blur: blur(20px) saturate(190%);
+  --waicc-shadow: 0 24px 70px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.05);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+[data-theme="light"] .waicc-root {
+  --waicc-bg: rgba(255, 255, 255, 0.7);
+  --waicc-card-bg: rgba(15, 23, 42, 0.02);
+  --waicc-border: 1px solid rgba(15, 23, 42, 0.08);
+  --waicc-text: #0f172a;
+  --waicc-muted: #475569;
+  --waicc-accent: #0284c7;
+  --waicc-accent-glow: rgba(2, 132, 199, 0.25);
+  --waicc-blur: blur(16px) saturate(130%);
+  --waicc-shadow: 0 24px 70px rgba(15, 23, 42, 0.1), inset 0 1px 1px rgba(255, 255, 255, 0.9);
+}
+
+.waicc-fab {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  z-index: 2147483000;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  padding: 0.85rem 1.25rem;
+  background: linear-gradient(135deg, #06b6d4, #6366f1);
+  color: white;
+  box-shadow: 0 12px 35px rgba(6, 182, 212, 0.35);
+  cursor: pointer;
+  font-weight: 750;
+  transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.waicc-fab:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 20px 45px rgba(99, 102, 241, 0.5);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+[data-theme="light"] .waicc-fab {
+  background: linear-gradient(135deg, #0284c7, #4f46e5);
+  box-shadow: 0 12px 35px rgba(2, 132, 199, 0.3);
+}
+
+[data-theme="light"] .waicc-fab:hover {
+  box-shadow: 0 20px 45px rgba(79, 70, 229, 0.4);
+}
+
+.waicc-panel {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  z-index: 2147483001;
+  width: min(24rem, calc(100vw - 3rem));
+  max-height: min(42rem, calc(100vh - 3rem));
+  display: grid;
+  gap: 0.85rem;
+  padding: 1.25rem;
+  border-radius: 1.5rem;
+  background: var(--waicc-bg);
+  border: var(--waicc-border);
+  backdrop-filter: var(--waicc-blur);
+  color: var(--waicc-text);
+  box-shadow: var(--waicc-shadow);
+  transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.waicc-panel[hidden], .waicc-fab[hidden] {
+  display: none;
+}
+
+.waicc-header, .waicc-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: space-between;
+}
+
+.waicc-close, .waicc-controls button, .waicc-actions button {
+  border: var(--waicc-border);
+  border-radius: 0.85rem;
+  background: var(--waicc-card-bg);
+  color: var(--waicc-text);
+  padding: 0.55rem 0.8rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  font-weight: 600;
+  backdrop-filter: var(--waicc-blur);
+}
+
+.waicc-close:hover, .waicc-controls button:hover, .waicc-actions button:hover {
+  border-color: var(--waicc-accent);
+  background: rgba(6, 182, 212, 0.08);
+  transform: translateY(-1px);
+}
+
+[data-theme="light"] .waicc-close:hover, 
+[data-theme="light"] .waicc-controls button:hover, 
+[data-theme="light"] .waicc-actions button:hover {
+  background: rgba(2, 132, 199, 0.05);
+}
+
+.waicc-controls {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.waicc-status {
+  border-radius: 0.85rem;
+  background: rgba(52, 211, 153, 0.08);
+  color: #34d399;
+  border: 1px solid rgba(52, 211, 153, 0.2);
+  padding: 0.5rem 0.8rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+[data-theme="light"] .waicc-status {
+  background: rgba(5, 150, 105, 0.05);
+  color: #059669;
+  border-color: rgba(5, 150, 105, 0.15);
+}
+
+.waicc-progress {
+  height: 0.5rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+[data-theme="light"] .waicc-progress {
+  background: rgba(15, 23, 42, 0.06);
+  border-color: rgba(15, 23, 42, 0.04);
+}
+
+.waicc-progress span {
+  display: block;
+  width: 0;
+  height: 100%;
+  background: linear-gradient(90deg, #06b6d4, #34d399);
+  transition: width 0.25s ease;
+}
+
+.waicc-messages {
+  display: grid;
+  gap: 0.65rem;
+  overflow: auto;
+  max-height: 14rem;
+  padding-right: 0.25rem;
+}
+
+.waicc-message {
+  margin: 0;
+  padding: 0.7rem 0.85rem;
+  border-radius: 1rem;
+  line-height: 1.5;
+  font-size: 0.92rem;
+  transition: all 0.2s ease;
+}
+
+.waicc-user {
+  margin-left: 2rem;
+  background: rgba(99, 102, 241, 0.15);
+  color: #e0e7ff;
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  border-bottom-right-radius: 0.25rem;
+  align-self: end;
+}
+
+[data-theme="light"] .waicc-user {
+  background: rgba(79, 70, 229, 0.08);
+  color: #312e81;
+  border-color: rgba(79, 70, 229, 0.15);
+}
+
+.waicc-assistant {
+  margin-right: 2rem;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--waicc-text);
+  border: var(--waicc-border);
+  border-bottom-left-radius: 0.25rem;
+  align-self: start;
+}
+
+[data-theme="light"] .waicc-assistant {
+  background: rgba(15, 23, 42, 0.02);
+}
+
+.waicc-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.waicc-label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--waicc-muted);
+}
+
+.waicc-input {
+  min-height: 4.5rem;
+  resize: vertical;
+  border: var(--waicc-border);
+  border-radius: 1rem;
+  padding: 0.8rem;
+  font: inherit;
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--waicc-text);
+  transition: all 0.2s ease;
+}
+
+.waicc-input:focus {
+  border-color: var(--waicc-accent);
+  outline: none;
+  background: rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 15px var(--waicc-accent-glow);
+}
+
+[data-theme="light"] .waicc-input {
+  background: rgba(255, 255, 255, 0.8);
+}
+
+[data-theme="light"] .waicc-input:focus {
+  background: #ffffff;
+}
+
+.waicc-highlight {
+  outline: 4px solid var(--waicc-accent);
+  outline-offset: 4px;
+  box-shadow: 0 0 25px var(--waicc-accent-glow);
+  transition: outline-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .waicc-progress span, .waicc-highlight, .waicc-fab, .waicc-panel {
+    transition: none !important;
+    animation: none !important;
+  }
+}
