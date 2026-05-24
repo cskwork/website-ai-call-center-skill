@@ -15,20 +15,35 @@ Import from `src/index.js` while developing or from the package entry after publ
 
 ## Scenario shape
 
-Keep local scenarios in one catalog file so non-authors can review the flow without reading UI control logic.
+Keep local scenarios in YAML files so non-authors can review the flow without reading UI control logic.
 
-```js
-{
-  id: 'login-help',
-  title: 'Login help',
-  phrase: 'I cannot log in',
-  match: ['login', 'password'],
-  response: 'I can help you reset your password.',
-  actions: [{ id: 'show-reset', label: 'Show reset link' }]
-}
+```yaml
+id: login-help
+catalog_order: 10
+scenario_intent: login_help
+title: Login help
+button_label: Login help
+summary: Helps users find the login reset path.
+utterances:
+  - I cannot log in
+match:
+  keywords:
+    - login
+    - password
+reply:
+  text: I can help you reset your password.
+frontend_actions:
+  - id: show-reset
+    label: Show reset link
+workflow:
+  issue_type: account_support
 ```
 
-For the landing template, edit `site/scenarios.js`. Add/remove/edit one object there, then make sure every action id is registered in the safe action registry.
+For the landing template, edit `scenarios/*.yml`, run `npm run scenarios:build`, then make sure every `frontend_actions[].id` is registered in the safe action registry.
+
+## Intent detection
+
+The static template resolves intent with deterministic keyword scoring from `match.keywords`. For production, an LLM or classifier may return `scenario_intent`; resolve that intent through the same approved catalog and expose only registered frontend actions.
 
 ## HTTP engine shape
 

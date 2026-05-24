@@ -9,10 +9,11 @@
     "dev": "vite --host 127.0.0.1",
     "prepack": "npm run build",
     "test": "node --test tests/*.test.mjs && npm run validate",
-    "validate": "node scripts/validate.mjs",
+    "validate": "node scripts/build-scenarios.mjs --check && node scripts/validate.mjs",
     "smoke:browser": "node scripts/browser-smoke.mjs",
-    "site:build": "npm run build && node scripts/build-pages.mjs",
-    "smoke:site": "node scripts/site-smoke.mjs"
+    "site:build": "npm run scenarios:build && npm run build && node scripts/build-pages.mjs",
+    "smoke:site": "node scripts/site-smoke.mjs",
+    "scenarios:build": "node scripts/build-scenarios.mjs"
   },
   "files": [
     "dist/",
@@ -40,8 +41,10 @@
     "onnxruntime-web": "^1.26.0"
   },
   "devDependencies": {
+    "ajv": "^8.20.0",
     "playwright": "^1.47.0",
-    "vite": "^8.0.14"
+    "vite": "^8.0.14",
+    "yaml": "^2.9.0"
   },
   "main": "./dist/website-ai-call-center.iife.js",
   "module": "./dist/website-ai-call-center.esm.js",

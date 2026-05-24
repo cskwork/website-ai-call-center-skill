@@ -49,3 +49,9 @@
 - Moved landing-page call flows into `site/scenarios.js` so add/remove/edit work happens in one readable catalog instead of scattered UI conditionals.
 - Rendered demo phrase buttons and visible scenario cards from the same catalog because reviewers should understand sample phrases, match terms, replies, and safe actions without reading JavaScript control flow.
 - Updated the packaged `website-ai-call-center` skill and integration docs to make the scenario-catalog pattern part of the reusable workflow.
+
+## YAML scenario source
+
+- Replaced direct runtime scenario editing with ordered `scenarios/*.yml` plus `schemas/call-scenario.schema.json` because production call centers need reviewable scenario operations at hundreds-of-intents scale.
+- Added `scripts/build-scenarios.mjs` to validate YAML and generate `site/generated/scenarios.js`, keeping browser runtime data deterministic while leaving YAML as the human source of truth.
+- Documented current keyword-based intent detection and the later LLM/classifier path: resolve `scenario_intent`, then map it to the approved scenario workflow and safe frontend actions.
