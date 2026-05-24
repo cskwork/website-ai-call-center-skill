@@ -164,6 +164,8 @@ function createScenarioHeader(scenario) {
 function createScenarioMeta(scenario) {
   const meta = document.createElement('div');
   meta.className = 'scenario-meta';
+  meta.append(metaBlock('Scenario intent', scenario.scenario_intent));
+  meta.append(metaBlock('Workflow issue type', scenario.workflow?.issue_type || 'none'));
   meta.append(metaBlock('Sample phrase', scenario.phrase));
   meta.append(chipBlock('Match terms', scenario.terms));
   meta.append(chipBlock('Safe actions', scenario.actions.map((action) => action.label)));

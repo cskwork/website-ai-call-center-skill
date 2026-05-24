@@ -1,0 +1,24 @@
+id: ticket
+catalog_order: 40
+scenario_intent: escalation_ticket
+title: Ticket draft
+button_label: Draft ticket
+summary: Creates an escalation draft with the captured issue, page path, and speech mode.
+utterances:
+  - I need to draft a technical support ticket
+  - Please escalate this to an agent
+  - Create a case for support
+match:
+  keywords:
+    - ticket
+    - case
+    - agent
+    - support
+reply:
+  text: I can draft a support ticket with the current page path and your issue summary.
+frontend_actions:
+  - id: draft-ticket
+    label: Draft support ticket
+workflow:
+  issue_type: escalation
+  handoff: true

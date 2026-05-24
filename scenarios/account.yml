@@ -1,0 +1,24 @@
+id: account
+catalog_order: 20
+scenario_intent: account_navigation
+title: Account path
+button_label: Find account settings
+summary: Shows where account, settings, profile, and login help live.
+utterances:
+  - I cannot find account settings
+  - Where is my profile page
+  - I need login settings
+match:
+  keywords:
+    - account
+    - settings
+    - profile
+    - login
+reply:
+  text: I can point you to the account path and keep the action limited to a registered page target.
+frontend_actions:
+  - id: show-account
+    label: Show account path
+workflow:
+  issue_type: product_navigation
+  handoff: false

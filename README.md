@@ -94,21 +94,67 @@ Piper TTS cache behavior is runtime-managed by the Piper/ONNX stack. `preferOpfs
 
 ## Scenario management
 
-The landing page keeps demo call flows in `site/scenarios.js`.
+The landing page keeps human-managed call flows in YAML files under `scenarios/`.
+`scripts/build-scenarios.mjs` validates those files against `schemas/call-scenario.schema.json`
+and generates `site/generated/scenarios.js` for the browser runtime.
 
 Each scenario has:
 
 - `id` and `title` for the visible catalog.
-- `phrase` for the demo button.
-- `terms` for local keyword matching.
-- `replyText` for the assistant response.
-- `actions` for the registered safe page actions the assistant may offer.
+- `catalog_order` for stable display order.
+- `scenario_intent` for the resolved user intent.
+- `utterances` for example phrases and the demo button.
+- `match.keywords` for local deterministic matching.
+- `reply.text` for the assistant response.
+- `frontend_actions` for registered safe page actions.
+- `workflow.issue_type` for downstream routing or handoff.
 
-Add, remove, or edit scenarios in that file; `site/landing.js` renders the phrase buttons and the visible scenario catalog from the same list.
+```yaml
+id: audio
+catalog_order: 10
+scenario_intent: audio_issue
+title: Audio setup
+utterances:
+  - I cannot hear audio during a support call
+match:
+  keywords: [audio, hear, speaker]
+reply:
+  text: I can guide audio setup.
+frontend_actions:
+  - id: show-audio
+    label: Show audio setup
+workflow:
+  issue_type: technical_support
+```
+
+Add, remove, or edit scenarios in `scenarios/*.yml`, then run:
+
+```bash
+npm run scenarios:build
+```
+
+`site/landing.js` renders the phrase buttons and visible scenario catalog from the generated runtime file.
+
+## Intent detection
+
+The current static demo detects intent with deterministic keyword scoring:
+
+1. Normalize the user's text.
+2. Score each YAML scenario by matching `match.keywords`.
+3. Select the highest-scoring scenario.
+4. Return its `scenario_intent`, `workflow.issue_type`, reply text, and approved `frontend_actions`.
+
+For production call centers, replace only the intent resolver. An LLM, classifier, or contact-center workflow can return a `scenario_intent` such as `audio_issue`; the runtime should then call `getScenarioReplyForIntent(intent)` and execute only the scenario's approved `frontend_actions`. Keep these concepts separate:
+
+- `scenario_intent`: what the user wants.
+- `scenario`: the approved response/action plan for that intent.
+- `workflow.issue_type`: backend routing or handoff category.
+- `frontend_actions`: safe page callbacks registered by the website.
 
 ## Verification
 
 ```bash
+npm run scenarios:build
 npm test
 npm run build
 npm run site:build

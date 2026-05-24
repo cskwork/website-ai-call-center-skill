@@ -1,0 +1,27 @@
+id: audio
+catalog_order: 10
+scenario_intent: audio_issue
+title: Audio setup
+button_label: Audio is broken
+summary: Guides headset, speaker, mute, and browser permission checks.
+utterances:
+  - I cannot hear audio during a support call
+  - My speaker is muted
+  - Sound is not working
+match:
+  keywords:
+    - audio
+    - hear
+    - speaker
+    - sound
+    - mute
+reply:
+  text: I can guide audio setup. Start with the headset panel, then run browser checks if voice still fails.
+frontend_actions:
+  - id: show-audio
+    label: Show audio setup
+  - id: run-checks
+    label: Run browser checks
+workflow:
+  issue_type: technical_support
+  handoff: false

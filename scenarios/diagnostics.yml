@@ -1,0 +1,24 @@
+id: diagnostics
+catalog_order: 30
+scenario_intent: browser_diagnostics
+title: Browser diagnostics
+button_label: Run diagnostics
+summary: Runs honest local checks for secure context, WASM, workers, storage, and mic access.
+utterances:
+  - My page says offline and I need diagnostics
+  - The network check is failing
+  - Run browser diagnostics
+match:
+  keywords:
+    - offline
+    - diagnostic
+    - network
+    - page
+reply:
+  text: I can run honest browser capability checks and show the diagnostics card.
+frontend_actions:
+  - id: run-checks
+    label: Run browser checks
+workflow:
+  issue_type: technical_support
+  handoff: false
