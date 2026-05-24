@@ -1,0 +1,113 @@
+import { resolveAssetUrl } from '../core/asset-base.js';
+import { blobTo16KhzPcm } from './media-utils.js';
+
+const DEFAULT_MODEL = 'onnx-community/distil-small.en';
+
+export function createWasmSttAdapter({
+  WorkerCtor = globalThis.Worker,
+  dtype = 'q4',
+  localModelPath = null,
+  modelId = DEFAULT_MODEL,
+  useLocalModels = false,
+  useOpfsCache = true,
+  workerBaseUrl = null,
+  workerUrl = null,
+} = {}) {
+  let worker = null;
+  let ready = null;
+  let mediaRecorder = null;
+  let mediaStream = null;
+  let chunks = [];
+  let pending = null;
+  let report = () => {};
+
+  async function prepare(onProgress = report) {
+    report = onProgress;
+    if (ready) return ready;
+    worker = createWorker(WorkerCtor, resolveAssetUrl('workers/stt-worker.js', workerUrl, workerBaseUrl));
+    ready = new Promise((resolve, reject) => wireWorker(resolve, reject));
+    worker.postMessage({ type: 'init', dtype, modelId, localModelPath, useLocalModels, useOpfsCache });
+    return ready;
+  }
+
+  async function start(onTranscript = () => {}) {
+    await prepare(report);
+    mediaStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+    chunks = [];
+    mediaRecorder = createRecorder(mediaStream);
+    mediaRecorder.ondataavailable = (event) => { if (event.data.size > 0) chunks.push(event.data); };
+    mediaRecorder.start();
+    onTranscript({ text: '', final: false, source: 'wasm-stt' });
+  }
+
+  async function stop() {
+    if (!mediaRecorder) return { text: '', final: true, source: 'wasm-stt' };
+    const blob = await stopRecorder(mediaRecorder, chunks);
+    stopStream();
+    const pcm = await blobTo16KhzPcm(blob);
+    const result = await transcribe(pcm);
+    return { text: result.text, final: true, source: 'wasm-stt', durationMs: result.durationMs };
+  }
+
+  function wireWorker(resolveReady, rejectReady) {
+    worker.onmessage = ({ data }) => handleWorkerMessage(data, resolveReady, rejectReady);
+    worker.onerror = (event) => rejectReady(new Error(event.message || 'STT worker failed to load.'));
+  }
+
+  function handleWorkerMessage(data, resolveReady, rejectReady) {
+    if (data.type === 'progress' || data.type === 'cache-backend') report(normalizeProgress(data));
+    if (data.type === 'ready') resolveReady();
+    if (data.type === 'result') settle(data);
+    if (data.type === 'error') reject(data.message, rejectReady);
+  }
+
+  function transcribe(pcm) {
+    return new Promise((resolve, reject) => {
+      pending = { resolve, reject };
+      worker.postMessage({ type: 'transcribe', pcm }, [pcm.buffer]);
+    });
+  }
+
+  function settle(data) {
+    pending?.resolve({ text: data.text, durationMs: data.durationMs });
+    pending = null;
+  }
+
+  function reject(message, rejectReady) {
+    const error = new Error(message);
+    rejectReady?.(error);
+    pending?.reject(error);
+    pending = null;
+  }
+
+  function stopStream() {
+    mediaStream?.getTracks().forEach((track) => track.stop());
+    mediaStream = null;
+    mediaRecorder = null;
+  }
+
+  return { prepare, start, stop };
+}
+
+function createWorker(WorkerCtor, workerUrl) {
+  if (!WorkerCtor) throw new Error('Web Worker is required for WASM STT.');
+  return new WorkerCtor(workerUrl, { type: 'module' });
+}
+
+function createRecorder(stream) {
+  const mimeType = MediaRecorder.isTypeSupported?.('audio/webm') ? 'audio/webm' : '';
+  return mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+}
+
+function stopRecorder(recorder, chunks) {
+  return new Promise((resolve) => {
+    recorder.onstop = () => resolve(new Blob(chunks, { type: recorder.mimeType || 'audio/webm' }));
+    recorder.stop();
+  });
+}
+
+function normalizeProgress(data) {
+  if (data.type === 'cache-backend') return { type: 'progress', area: 'stt', phase: 'cache', progress: 5, backend: data.backend };
+  const progress = typeof data.progress === 'number' ? Math.round(data.progress) : 0;
+  return { type: 'progress', area: 'stt', phase: data.status || 'download', progress, detail: data.file };
+}

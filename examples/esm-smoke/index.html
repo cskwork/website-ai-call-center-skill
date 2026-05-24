@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>ESM smoke</title></head>
+<body><main><h1>ESM smoke</h1></main>
+<script type="module">
+  import { createWorkerAssetUrls, createWasmSttAdapter, createPiperTtsAdapter } from '../../dist/website-ai-call-center.esm.js';
+
+  const created = [];
+  class FakeWorker {
+    constructor(url, options) {
+      this.url = String(url);
+      this.options = options;
+      created.push({ url: this.url, options });
+    }
+    postMessage(message) {
+      if (message.type === 'init') queueMicrotask(() => this.onmessage?.({ data: { type: 'ready' } }));
+    }
+    terminate() {}
+  }
+
+  const urls = createWorkerAssetUrls(new URL('../../dist/', location.href));
+  const stt = createWasmSttAdapter({ WorkerCtor: FakeWorker, workerUrl: urls.sttWorkerUrl });
+  const tts = createPiperTtsAdapter({ WorkerCtor: FakeWorker, workerUrl: urls.ttsWorkerUrl });
+  await stt.prepare(() => {});
+  await tts.prepare(() => {});
+  window.__esmSmoke = { ok: created.length === 2 && created.every((entry) => entry.options?.type === 'module'), created };
+</script>
+</body>
+</html>

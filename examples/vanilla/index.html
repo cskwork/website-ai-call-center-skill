@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Website AI Call Center Demo</title>
+  <link rel="stylesheet" href="../../dist/website-ai-call-center.css" />
+  <style>
+    body { margin: 0; font-family: system-ui, sans-serif; background: #f8fafc; color: #0f172a; }
+    main { max-width: 980px; margin: 0 auto; padding: 4rem 1rem; }
+    h1 { margin-bottom: .5rem; }
+    .lead { max-width: 62rem; color: #475569; line-height: 1.6; }
+    .demo-bar, .grid { display: grid; gap: 1rem; }
+    .demo-bar { grid-template-columns: minmax(0, 1fr) auto; align-items: end; margin: 1.5rem 0; }
+    .grid { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+    .card { background: white; border: 1px solid #e2e8f0; border-radius: 1rem; padding: 1rem; margin: 1rem 0; }
+    .card h2 { margin-top: 0; }
+    button { border: 0; border-radius: .8rem; background: #2563eb; color: white; padding: .8rem 1rem; cursor: pointer; }
+    input, select, textarea { width: 100%; box-sizing: border-box; border: 1px solid #cbd5e1; border-radius: .75rem; padding: .75rem; font: inherit; }
+    label { display: grid; gap: .35rem; font-weight: 600; }
+    .muted, small { color: #64748b; }
+    .status { border-radius: .75rem; background: #ecfeff; color: #155e75; padding: .75rem; }
+    .log { min-height: 5rem; padding-left: 1.2rem; color: #334155; }
+    .ticket-draft { min-height: 7rem; }
+    @media (max-width: 720px) { .demo-bar { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Framework-agnostic AI call center overlay</h1>
+    <p class="lead">
+      This is a working static-site implementation. It wires real page actions, a concrete scenario engine,
+      Transformers.js WASM STT, Piper WASM TTS, and no app framework.
+    </p>
+
+    <div class="demo-bar card">
+      <label>
+        Sample support phrase
+        <select id="demo-transcript">
+          <option>I cannot find my account settings</option>
+          <option>My internet page says offline and I need diagnostics</option>
+          <option>I need help with my invoice and payment method</option>
+          <option>I want to open a technical support ticket</option>
+        </select>
+      </label>
+      <button id="demo-open" type="button">Open support overlay</button>
+      <small id="speech-mode" class="muted"></small>
+    </div>
+
+    <section id="overview" class="card" tabindex="-1">
+      <h2>Customer portal</h2>
+      <p>Try typing or selecting one of the demo voice phrases, then let the support overlay guide this page.</p>
+      <label>
+        Help search
+        <input id="help-search" placeholder="Search help topics" />
+      </label>
+    </section>
+
+    <div class="grid">
+      <section id="account" class="card" tabindex="-1">
+        <h2>Account settings</h2>
+        <p>Reset password, update profile details, and check recent sign-in events.</p>
+      </section>
+
+      <section id="network" class="card" tabindex="-1">
+        <h2>Network status</h2>
+        <p id="network-copy">Status unknown. Run diagnostics for a browser-local example check.</p>
+      </section>
+
+      <section id="billing" class="card" tabindex="-1">
+        <h2>Billing</h2>
+        <p>Manage invoices, payment methods, refunds, and billing owner details.</p>
+      </section>
+
+      <section id="ticket" class="card" tabindex="-1">
+        <h2>Support ticket</h2>
+        <textarea id="ticket-summary" class="ticket-draft" placeholder="Ticket draft appears here"></textarea>
+      </section>
+    </div>
+
+    <section id="diagnostics" class="card" tabindex="-1">
+      <h2>Diagnostics</h2>
+      <p id="diagnostic-result" class="status">No diagnostics have run yet.</p>
+    </section>
+
+    <section class="card">
+      <h2>Page action log</h2>
+      <ol id="action-log" class="log"></ol>
+    </section>
+  </main>
+  <script src="../../dist/website-ai-call-center.iife.js"></script>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
