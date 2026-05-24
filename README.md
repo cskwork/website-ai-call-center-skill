@@ -4,6 +4,8 @@ A framework-agnostic skill and template for adding an AI technical-support call 
 
 The default shape is static and minimal-infra: a browser overlay, a local scenario engine, safe page actions, browser WASM STT, Piper WASM TTS, and optional HTTP AI adapter when you want a real backend.
 
+Live landing page target: `https://cskwork.github.io/website-ai-call-center-skill/`
+
 ## Why use it
 
 - Works with static HTML, CMS pages, SPAs, and framework apps.
@@ -19,6 +21,14 @@ npm install
 npm run build
 python3 -m http.server 4173
 # open http://127.0.0.1:4173/examples/vanilla/
+```
+
+GitHub Pages landing site:
+
+```bash
+npm run site:build
+python3 -m http.server 4173 -d _site
+# open http://127.0.0.1:4173/
 ```
 
 Script-tag integration:
@@ -87,9 +97,22 @@ Piper TTS cache behavior is runtime-managed by the Piper/ONNX stack. `preferOpfs
 ```bash
 npm test
 npm run build
+npm run site:build
 npm run smoke:browser
+npm run smoke:site
 npm pack --dry-run --json
 ```
+
+## GitHub Pages
+
+This repository includes `.github/workflows/pages.yml`. On pushes to `main`, GitHub Actions runs tests, builds the SDK bundles, copies `site/`, `dist/`, `examples/`, and `docs/` into `_site/`, then deploys the artifact to GitHub Pages.
+
+Notes for static hosting:
+
+- All landing-page links use relative paths so project Pages works under `/website-ai-call-center-skill/`.
+- The landing text path does not preload speech models.
+- Voice mode remains WASM-based: Transformers.js STT and Piper TTS load lazily after the user clicks Prepare.
+- GitHub Pages cannot add cross-origin isolation headers, so the template uses non-threaded/browser-safe WASM paths.
 
 See `docs/integration.md`, `docs/privacy.md`, and `docs/browser-support.md` before production use.
 

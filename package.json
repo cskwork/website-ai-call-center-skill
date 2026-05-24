@@ -10,7 +10,9 @@
     "prepack": "npm run build",
     "test": "node --test tests/*.test.mjs && npm run validate",
     "validate": "node scripts/validate.mjs",
-    "smoke:browser": "node scripts/browser-smoke.mjs"
+    "smoke:browser": "node scripts/browser-smoke.mjs",
+    "site:build": "npm run build && node scripts/build-pages.mjs",
+    "smoke:site": "node scripts/site-smoke.mjs"
   },
   "files": [
     "dist/",

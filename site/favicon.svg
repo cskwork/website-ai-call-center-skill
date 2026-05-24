@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Website AI Call Center">
+  <defs>
+    <linearGradient id="g" x1="12" x2="52" y1="12" y2="52" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#22D3EE"/>
+      <stop offset="1" stop-color="#6366F1"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="18" fill="#0B0F14"/>
+  <path d="M16 33c5-13 12-13 17 0s12 13 17 0" fill="none" stroke="url(#g)" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="18" cy="46" r="4" fill="#22D3EE"/>
+  <circle cx="46" cy="18" r="4" fill="#6366F1"/>
+</svg>
