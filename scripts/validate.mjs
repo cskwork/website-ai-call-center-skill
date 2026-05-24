@@ -24,9 +24,10 @@ assert.match(read('site/index.html'), /Add a private AI call-center to any websi
 assert.match(read('site/index.html'), /\.\/examples\/vanilla\/index\.html/);
 assert.match(read('site/landing.js'), /onnx-community\/distil-small\.en/);
 assert.match(read('site/landing.js'), /createPiperTtsAdapter/);
-assert.match(read('.github/workflows/pages.yml'), /actions\/configure-pages@v5/);
-assert.match(read('.github/workflows/pages.yml'), /actions\/upload-pages-artifact@v4/);
-assert.match(read('.github/workflows/pages.yml'), /actions\/deploy-pages@v4/);
+assert.match(read('.github/workflows/pages.yml'), /actions\/configure-pages@v6/);
+assert.match(read('.github/workflows/pages.yml'), /actions\/upload-pages-artifact@v5/);
+assert.match(read('.github/workflows/pages.yml'), /actions\/deploy-pages@v5/);
+assert.match(read('.github/workflows/pages.yml'), /github\.event\.repository\.private/);
 assert.doesNotMatch(read('examples/vanilla/main.js'), /SpeechSynthesis|speechSynthesis|createSpeechSynthesisAdapter/);
 assert.doesNotMatch(read('site/landing.js'), /SpeechSynthesis|speechSynthesis|createSpeechSynthesisAdapter/);
 assert.doesNotMatch(read('site/index.html'), /(?:href|src)="\//);

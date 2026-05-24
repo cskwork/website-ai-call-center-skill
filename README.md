@@ -105,7 +105,9 @@ npm pack --dry-run --json
 
 ## GitHub Pages
 
-This repository includes `.github/workflows/pages.yml`. On pushes to `main`, GitHub Actions runs tests, builds the SDK bundles, copies `site/`, `dist/`, `examples/`, and `docs/` into `_site/`, then deploys the artifact to GitHub Pages.
+This repository includes `.github/workflows/pages.yml`. On pushes to `main`, GitHub Actions runs tests, builds the SDK bundles, and copies `site/`, `dist/`, `examples/`, and `docs/` into `_site/`.
+
+Deployment is guarded while the repo is private. GitHub Pages for private repositories requires a supported GitHub plan; when the repo is public or Pages is enabled on a supported private plan, the same workflow uploads and deploys the `_site/` artifact.
 
 Notes for static hosting:
 
