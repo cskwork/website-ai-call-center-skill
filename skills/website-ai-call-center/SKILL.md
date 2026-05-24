@@ -17,15 +17,17 @@ Use this skill to add a voice/text AI support overlay to any website without com
 - Local rule engine for zero-infra demos; HTTP engine for real AI workflows.
 - AI may request only registered safe actions by id.
 - Large model files go to browser cache/OPFS where possible, not localStorage.
+- Keep local call scenarios in a visible catalog file, not hidden UI conditionals.
 
 ## Workflow
 
 1. Find the website entry point and static asset path.
 2. Add the built JS/CSS or copy the template source into the app.
 3. Register safe page actions for navigation, scrolling, focus, or highlighting.
-4. Pick STT/TTS adapters and show their progress events in the UI.
-5. Start with local scenarios, then swap to an HTTP AI engine if needed.
-6. Verify keyboard access, text fallback, model progress, TTS stop, and no arbitrary DOM execution.
+4. Put local call scenarios in one catalog: id, title, sample phrase, match terms, assistant reply, and safe action ids.
+5. Pick STT/TTS adapters and show their progress events in the UI.
+6. Start with local scenarios, then swap to an HTTP AI engine if needed.
+7. Verify keyboard access, text fallback, model progress, TTS stop, and no arbitrary DOM execution.
 
 ## Integration shape
 
@@ -43,11 +45,24 @@ const center = createWebsiteCallCenter({
 Read `references/integration.md` for copy-in steps.
 Read `references/verification.md` before claiming completion.
 
+## Scenario catalog rule
+
+For static demos, use the `site/scenarios.js` pattern:
+
+- Add a scenario by adding one object to `CALL_SCENARIOS`.
+- Remove a scenario by deleting that object.
+- Change routing by editing its `terms`.
+- Change the spoken/written answer by editing `replyText`.
+- Change what the assistant may do by editing `actions`, then registering matching safe action ids.
+
+Render demo phrase buttons and visible scenario cards from the same catalog so reviewers can see the call flow without reading control-flow code.
+
 ## Review checklist
 
 - No mandatory backend speech service was introduced.
 - No large model binary was committed.
 - User sees first-download/model progress.
 - Text fallback works without microphone permission.
+- Local scenarios are discoverable in one catalog file or a documented backend workflow.
 - Assistant actions are registered callbacks, not arbitrary generated code.
 - Browser smoke covers the real page or the vanilla template.

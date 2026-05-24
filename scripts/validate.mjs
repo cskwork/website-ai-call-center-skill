@@ -12,7 +12,9 @@ assert.match(read('skills/website-ai-call-center/SKILL.md'), /^name: website-ai-
 assert.match(read('docs/privacy.md'), /What can leave the browser/);
 assert.match(read('docs/browser-support.md'), /onnx-community\/distil-small\.en/);
 assert.match(read('README.md'), /createWorkerAssetUrls/);
+assert.match(read('README.md'), /Scenario management/);
 assert.match(read('docs/integration.md'), /Worker asset placement/);
+assert.match(read('docs/integration.md'), /Scenario catalog/);
 assert.match(read('package.json'), /"build": "vite build && vite build --config vite\.workers\.config\.mjs"/);
 assert.match(read('package.json'), /"site:build": "npm run build && node scripts\/build-pages\.mjs"/);
 assert.match(read('examples/vanilla/main.js'), /function createSupportScenarioEngine/);
@@ -21,9 +23,12 @@ assert.match(read('examples/vanilla/main.js'), /function createWasmSpeechAdapter
 assert.match(read('examples/vanilla/main.js'), /onnx-community\/distil-small\.en/);
 assert.match(read('examples/vanilla/main.js'), /@diffusionstudio\/piper-wasm@1\.0\.0/);
 assert.match(read('site/index.html'), /Add a private AI call-center to any website/);
+assert.match(read('site/index.html'), /Call scenario catalog/);
 assert.match(read('site/index.html'), /\.\/examples\/vanilla\/index\.html/);
+assert.match(read('site/landing.js'), /from '\.\/scenarios\.js'/);
 assert.match(read('site/landing.js'), /onnx-community\/distil-small\.en/);
 assert.match(read('site/landing.js'), /createPiperTtsAdapter/);
+assert.match(read('site/scenarios.js'), /CALL_SCENARIOS/);
 assert.match(read('.github/workflows/pages.yml'), /actions\/configure-pages@v6/);
 assert.match(read('.github/workflows/pages.yml'), /actions\/upload-pages-artifact@v5/);
 assert.match(read('.github/workflows/pages.yml'), /actions\/deploy-pages@v5/);
@@ -58,6 +63,7 @@ function requiredFiles() {
     'site/index.html',
     'site/styles.css',
     'site/landing.js',
+    'site/scenarios.js',
     'site/favicon.svg',
     'scripts/build-pages.mjs',
     'scripts/site-smoke.mjs',

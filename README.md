@@ -92,6 +92,20 @@ Piper TTS cache behavior is runtime-managed by the Piper/ONNX stack. `preferOpfs
 - Engine adapter: `startSession()`, `sendUserText(text, context)`, `endSession()`.
 - Action registry: register allowed callbacks and execute by id only.
 
+## Scenario management
+
+The landing page keeps demo call flows in `site/scenarios.js`.
+
+Each scenario has:
+
+- `id` and `title` for the visible catalog.
+- `phrase` for the demo button.
+- `terms` for local keyword matching.
+- `replyText` for the assistant response.
+- `actions` for the registered safe page actions the assistant may offer.
+
+Add, remove, or edit scenarios in that file; `site/landing.js` renders the phrase buttons and the visible scenario catalog from the same list.
+
 ## Verification
 
 ```bash
