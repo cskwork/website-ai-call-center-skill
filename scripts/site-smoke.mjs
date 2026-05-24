@@ -26,6 +26,8 @@ try {
 
   await page.goto(`http://127.0.0.1:${port}/`);
   await page.waitForSelector('text=Add a private AI call-center to any website.');
+  await page.waitForSelector('text=Call scenario catalog');
+  await page.waitForSelector('[data-scenario-id="audio"]');
   await page.click('#launch-demo');
   await page.fill('.waicc-input', 'I cannot hear audio during a support call');
   await page.click('[data-waicc="send"]');

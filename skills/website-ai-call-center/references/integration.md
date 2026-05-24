@@ -15,14 +15,20 @@ Import from `src/index.js` while developing or from the package entry after publ
 
 ## Scenario shape
 
+Keep local scenarios in one catalog file so non-authors can review the flow without reading UI control logic.
+
 ```js
 {
   id: 'login-help',
+  title: 'Login help',
+  phrase: 'I cannot log in',
   match: ['login', 'password'],
   response: 'I can help you reset your password.',
   actions: [{ id: 'show-reset', label: 'Show reset link' }]
 }
 ```
+
+For the landing template, edit `site/scenarios.js`. Add/remove/edit one object there, then make sure every action id is registered in the safe action registry.
 
 ## HTTP engine shape
 

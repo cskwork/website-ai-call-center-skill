@@ -21,6 +21,23 @@ Use `createWasmSttAdapter()` for browser speech recognition with the default `on
 
 Start with `createLocalRuleEngine({ scenarios })` for zero infrastructure. Upgrade to `createHttpEngineAdapter({ endpoint })` when you have a server or hosted AI workflow.
 
+### Scenario catalog
+
+For a static landing or demo page, keep scenarios in one readable module instead of scattering `if` branches through UI code. The bundled landing page uses `site/scenarios.js` as the catalog and renders both the sample phrase buttons and the visible scenario cards from it.
+
+```js
+{
+  id: 'audio',
+  title: 'Audio setup',
+  phrase: 'I cannot hear audio during a support call',
+  terms: ['audio', 'hear', 'speaker'],
+  replyText: 'I can guide audio setup.',
+  actions: [{ id: 'show-audio', label: 'Show audio setup' }]
+}
+```
+
+To add, remove, or revise a local call flow, edit the catalog entry and keep the `actions` list aligned with the safe action registry.
+
 The HTTP endpoint receives JSON messages:
 
 ```json

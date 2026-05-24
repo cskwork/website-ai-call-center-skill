@@ -1,3 +1,5 @@
+import { CALL_SCENARIOS, getScenarioReply } from './scenarios.js';
+
 const sdk = window.WebsiteAICallCenter;
 
 const STT_MODEL_ID = 'onnx-community/distil-small.en';
@@ -31,6 +33,8 @@ function initCallCenter() {
     engine: createLandingEngine(),
     ...createWasmSpeechAdapters(),
   });
+  renderPhraseButtons();
+  renderScenarioCatalog();
   wireDemoButtons(center);
   wireCenterEvents(center);
 }
@@ -50,21 +54,12 @@ function createLandingEngine() {
     },
     async sendUserText(text) {
       latestIssue = text;
-      return selectReply(text);
+      return getScenarioReply(text);
     },
     async endSession() {
       updateStatus('Ended');
     },
   };
-}
-
-function selectReply(text) {
-  const normalized = text.toLowerCase();
-  if (hasAny(normalized, ['audio', 'hear', 'speaker', 'sound', 'mute'])) return audioReply();
-  if (hasAny(normalized, ['account', 'settings', 'profile', 'login'])) return accountReply();
-  if (hasAny(normalized, ['offline', 'diagnostic', 'network', 'page'])) return diagnosticsReply();
-  if (hasAny(normalized, ['ticket', 'case', 'agent', 'support'])) return ticketReply();
-  return defaultReply();
 }
 
 function createWasmSpeechAdapters() {
@@ -128,6 +123,86 @@ function wireCenterEvents(center) {
   center.on('action', (event) => updateNote(`Action ${event.id}: ${event.status}`));
 }
 
+function renderPhraseButtons() {
+  const grid = document.querySelector('#phrase-grid');
+  if (!grid) return;
+  grid.replaceChildren(...CALL_SCENARIOS.map(createPhraseButton));
+}
+
+function createPhraseButton(scenario) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.dataset.phrase = scenario.phrase;
+  button.textContent = scenario.buttonLabel;
+  return button;
+}
+
+function renderScenarioCatalog() {
+  const catalog = document.querySelector('#scenario-catalog');
+  if (!catalog) return;
+  catalog.replaceChildren(...CALL_SCENARIOS.map(createScenarioCard));
+}
+
+function createScenarioCard(scenario) {
+  const card = document.createElement('article');
+  card.className = 'scenario-card';
+  card.dataset.scenarioId = scenario.id;
+  card.append(createScenarioHeader(scenario), paragraph(scenario.summary), createScenarioMeta(scenario));
+  return card;
+}
+
+function createScenarioHeader(scenario) {
+  const header = document.createElement('header');
+  const label = document.createElement('span');
+  const title = document.createElement('h3');
+  label.textContent = scenario.id;
+  title.textContent = scenario.title;
+  header.append(label, title);
+  return header;
+}
+
+function createScenarioMeta(scenario) {
+  const meta = document.createElement('div');
+  meta.className = 'scenario-meta';
+  meta.append(metaBlock('Sample phrase', scenario.phrase));
+  meta.append(chipBlock('Match terms', scenario.terms));
+  meta.append(chipBlock('Safe actions', scenario.actions.map((action) => action.label)));
+  return meta;
+}
+
+function metaBlock(label, value) {
+  const block = document.createElement('section');
+  block.append(smallLabel(label), paragraph(value));
+  return block;
+}
+
+function chipBlock(label, values) {
+  const block = document.createElement('section');
+  const chips = document.createElement('div');
+  chips.className = 'scenario-chips';
+  chips.append(...values.map(createChip));
+  block.append(smallLabel(label), chips);
+  return block;
+}
+
+function createChip(value) {
+  const chip = document.createElement('span');
+  chip.textContent = value;
+  return chip;
+}
+
+function smallLabel(text) {
+  const label = document.createElement('strong');
+  label.textContent = text;
+  return label;
+}
+
+function paragraph(text) {
+  const node = document.createElement('p');
+  node.textContent = text;
+  return node;
+}
+
 function pastePhrase(text) {
   openOverlay();
   const input = document.querySelector('.waicc-input');
@@ -136,41 +211,6 @@ function pastePhrase(text) {
 
 function openOverlay() {
   document.querySelector('.waicc-fab')?.click();
-}
-
-function audioReply() {
-  return {
-    text: 'I can guide audio setup. Start with the headset panel, then run browser checks if voice still fails.',
-    actions: [{ id: 'show-audio', label: 'Show audio setup' }, { id: 'run-checks', label: 'Run browser checks' }],
-  };
-}
-
-function accountReply() {
-  return {
-    text: 'I can point you to the account path and keep the action limited to a registered page target.',
-    actions: [{ id: 'show-account', label: 'Show account path' }],
-  };
-}
-
-function diagnosticsReply() {
-  return {
-    text: 'I can run honest browser capability checks and show the diagnostics card.',
-    actions: [{ id: 'run-checks', label: 'Run browser checks' }],
-  };
-}
-
-function ticketReply() {
-  return {
-    text: 'I can draft a support ticket with the current page path and your issue summary.',
-    actions: [{ id: 'draft-ticket', label: 'Draft support ticket' }],
-  };
-}
-
-function defaultReply() {
-  return {
-    text: 'I can guide this static page. Try audio setup, account settings, diagnostics, or ticket drafting.',
-    actions: [{ id: 'show-audio', label: 'Show audio setup' }, { id: 'run-checks', label: 'Run browser checks' }],
-  };
 }
 
 function showTarget(selector) {
@@ -414,10 +454,6 @@ function updateStatus(state) {
 
 function updateNote(message) {
   document.querySelector('#demo-note').textContent = message;
-}
-
-function hasAny(text, terms) {
-  return terms.some((term) => text.includes(term));
 }
 
 function reducedMotion() {

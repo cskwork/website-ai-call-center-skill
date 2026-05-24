@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="./dist/website-ai-call-center.css" />
   <link rel="stylesheet" href="./styles.css" />
   <script src="./dist/website-ai-call-center.iife.js" defer></script>
-  <script src="./landing.js" defer></script>
+  <script type="module" src="./landing.js"></script>
 </head>
 <body>
   <div class="glow-blob glow-cyan" aria-hidden="true"></div>
@@ -27,6 +27,7 @@
     </a>
     <nav class="site-nav" aria-label="Primary">
       <a href="#demo">Demo</a>
+      <a href="#scenarios">Scenarios</a>
       <a href="#architecture">Architecture</a>
       <a href="#test-path">Test path</a>
       <a href="#start">Start</a>
@@ -112,12 +113,7 @@
             <span>Try a support phrase</span>
             <a href="./examples/vanilla/index.html">Open full demo</a>
           </div>
-          <div class="phrase-grid" aria-label="Sample support phrases">
-            <button type="button" data-phrase="I cannot hear audio during a support call">Audio is broken</button>
-            <button type="button" data-phrase="I cannot find account settings">Find account settings</button>
-            <button type="button" data-phrase="My page says offline and I need diagnostics">Run diagnostics</button>
-            <button type="button" data-phrase="I need to draft a technical support ticket">Draft ticket</button>
-          </div>
+          <div class="phrase-grid" id="phrase-grid" aria-label="Sample support phrases"></div>
           <button class="button button-primary demo-launch" id="launch-demo" type="button">
             Open support overlay
           </button>
@@ -149,6 +145,18 @@
           </article>
         </div>
       </div>
+    </section>
+
+    <section class="section-shell section-stack" id="scenarios" data-nav-section>
+      <div class="section-heading">
+        <p class="eyebrow">Call scenario catalog</p>
+        <h2>Manage the call flow from one readable list.</h2>
+        <p>
+          Each card comes from <code>site/scenarios.js</code>: sample phrase, match terms,
+          assistant reply, and the safe actions the page may run.
+        </p>
+      </div>
+      <div class="scenario-grid" id="scenario-catalog" aria-label="Call scenario catalog"></div>
     </section>
 
     <section class="section-shell section-stack" id="how" data-nav-section>
