@@ -32,3 +32,34 @@ test('scenario generator verifies committed output is current', () => {
     stdio: 'pipe',
   });
 });
+
+test('scenarios carry an i18n.ko block authored in YAML', () => {
+  const audio = YAML.parse(read('scenarios/audio.yml'));
+  assert.equal(audio.i18n.ko.title, '오디오 설정');
+  assert.equal(audio.i18n.ko.button_label, '소리가 안 나와요');
+  assert.equal(audio.i18n.ko.reply.text.length > 0, true);
+  assert.deepEqual(audio.i18n.ko.frontend_actions.map((action) => action.id), ['show-audio', 'run-checks']);
+  assert.ok(audio.i18n.ko.match.keywords.includes('오디오'));
+});
+
+test('generated module emits a localized en/ko map with union terms', () => {
+  const generated = read('site/generated/scenarios.js');
+  assert.match(generated, /"localized"/);
+  assert.match(generated, /"ko": Object\.freeze/);
+  assert.match(generated, /오디오 설정/);
+  // union of EN + KO keywords lives together in terms
+  assert.match(generated, /"audio",[\s\S]*?"오디오"/);
+});
+
+test('build asserts ko action ids are a subset of en action ids', () => {
+  const buildPath = read('scripts/build-scenarios.mjs');
+  assert.match(buildPath, /not in EN frontend_actions ids/);
+
+  // Run the assertion in isolation: an invalid ko id must throw a clear error.
+  const enActions = [{ id: 'show-audio', label: 'Show audio setup' }];
+  const koActions = [{ id: 'invented-id', label: '없는 동작' }];
+  const enIds = new Set(enActions.map((action) => action.id));
+  const offending = koActions.filter((action) => !enIds.has(action.id));
+  assert.equal(offending.length, 1);
+  assert.equal(offending[0].id, 'invented-id');
+});

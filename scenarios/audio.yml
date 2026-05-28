@@ -25,3 +25,27 @@ frontend_actions:
 workflow:
   issue_type: technical_support
   handoff: false
+i18n:
+  ko:
+    title: 오디오 설정
+    button_label: 소리가 안 나와요
+    summary: 헤드셋, 스피커, 음소거, 브라우저 권한을 점검하도록 안내합니다.
+    utterances:
+      - 상담 중에 소리가 안 들려요
+      - 스피커가 음소거됐어요
+      - 소리가 안 나와요
+    reply:
+      text: 오디오 설정을 안내해 드릴게요. 헤드셋 패널부터 확인하고, 그래도 음성이 안 되면 브라우저 점검을 실행하세요.
+    frontend_actions:
+      - id: show-audio
+        label: 오디오 설정 보기
+      - id: run-checks
+        label: 브라우저 점검 실행
+    match:
+      keywords:
+        - 소리
+        - 오디오
+        - 스피커
+        - 음소거
+        - 안 들
+        - 안들

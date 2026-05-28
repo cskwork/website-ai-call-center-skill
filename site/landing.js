@@ -1,4 +1,11 @@
 import { CALL_SCENARIOS, getScenarioReply } from './scenarios.js';
+import {
+  LANDING_STRINGS,
+  resolveInitialLocale,
+  applyLocale,
+  getLocale,
+  onLocaleChange,
+} from './i18n.js';
 
 const sdk = window.WebsiteAICallCenter;
 
@@ -14,29 +21,48 @@ const PIPER_WASM_PATHS = {
 
 let latestIssue = '';
 
+/**
+ * Tracks whether each runtime-owned readout currently shows live (non-default)
+ * content. On a language switch these readouts must keep their live value
+ * instead of snapping back to the static i18n default.
+ * @type {{ status: boolean, progress: boolean, diagnostics: boolean, note: boolean }}
+ */
+const liveReadouts = { status: false, progress: false, diagnostics: false, note: false };
+
+/** @type {ReturnType<typeof sdk.createWebsiteCallCenter> | null} */
+let callCenter = null;
+
 document.addEventListener('DOMContentLoaded', () => {
   if (!sdk) throw new Error('WebsiteAICallCenter bundle did not load.');
+  const locale = resolveInitialLocale();
+  applyLocale(locale, { persist: true });
   initTheme();
+  initLangToggle();
   initWaveform();
   initTabs();
   initChecks();
   initActiveNav();
   initCopyButton();
-  initCallCenter();
+  initCallCenter(locale);
 });
 
-function initCallCenter() {
+function s(key) {
+  const strings = LANDING_STRINGS[getLocale()] || LANDING_STRINGS['en'];
+  return strings[key] ?? (LANDING_STRINGS['en'][key] ?? key);
+}
+
+function initCallCenter(locale) {
   const actionRegistry = createLandingActions();
-  const center = sdk.createWebsiteCallCenter({
-    title: 'Static AI support',
+  callCenter = sdk.createWebsiteCallCenter({
+    locale,
     actionRegistry,
     engine: createLandingEngine(),
     ...createWasmSpeechAdapters(),
   });
   renderPhraseButtons();
   renderScenarioCatalog();
-  wireDemoButtons(center);
-  wireCenterEvents(center);
+  wireDemoButtons(callCenter);
+  wireCenterEvents(callCenter);
 }
 
 function createLandingActions() {
@@ -54,10 +80,10 @@ function createLandingEngine() {
     },
     async sendUserText(text) {
       latestIssue = text;
-      return getScenarioReply(text);
+      return getScenarioReply(text, getLocale());
     },
     async endSession() {
-      updateStatus('Ended');
+      updateStatus(s('status-ended'));
     },
   };
 }
@@ -93,7 +119,7 @@ function createPreparedOnlyTtsAdapter(wasmTts) {
     },
     async speak(text) {
       if (!prepared) {
-        updateNote('Text reply shown. Press Prepare first to enable Piper WASM TTS.');
+        updateNote(s('note-tts-not-prepared'));
         return;
       }
       await wasmTts.speak(text);
@@ -110,65 +136,120 @@ function wireDemoButtons(center) {
   document.querySelectorAll('[data-phrase]').forEach((button) => {
     button.addEventListener('click', () => pastePhrase(button.dataset.phrase || ''));
   });
-  center.on('state', ({ state }) => updateStatus(state));
+  center.on('state', ({ state }) => { lastStateCode = state; updateStatus(s(`status-${state}`) || state); });
 }
 
+let lastStateCode = '';
+/** @type {{ area?: string, phase?: string, progress?: number } | null} */
+let lastProgressEvent = null;
+
 function wireCenterEvents(center) {
-  center.on('progress', (event) => {
-    const progress = Math.round(Number(event.progress || 0));
-    const area = event.area || 'model';
-    document.querySelector('#model-progress').textContent = `${area} ${event.phase || 'progress'} ${progress}%`;
+  center.on('progress', (event) => renderProgress(event));
+  center.on('error', (event) => updateNote(fill(s('note-error'), { area: event.area, message: event.message })));
+  center.on('action', (event) => updateNote(fill(s('note-action'), { id: event.id, status: event.status })));
+}
+
+/**
+ * Render the model-progress readout from a progress event in the current locale.
+ * @param {{ area?: string, phase?: string, progress?: number }} event
+ */
+function renderProgress(event) {
+  lastProgressEvent = event;
+  liveReadouts.progress = true;
+  const progress = Math.round(Number(event.progress || 0));
+  document.querySelector('#model-progress').textContent = fill(s('note-progress'), {
+    area: event.area || 'model',
+    phase: event.phase || 'progress',
+    progress: String(progress),
   });
-  center.on('error', (event) => updateNote(`Error in ${event.area}: ${event.message}`));
-  center.on('action', (event) => updateNote(`Action ${event.id}: ${event.status}`));
+}
+
+/**
+ * Re-apply live runtime readouts after a language switch, re-localizing the ones
+ * derivable from stored state so no readout snaps back to its static default.
+ */
+function reapplyLiveReadouts() {
+  if (liveReadouts.status && lastStateCode) {
+    document.querySelector('#hero-status').textContent = s(`status-${lastStateCode}`) || lastStateCode;
+  }
+  if (liveReadouts.progress && lastProgressEvent) renderProgress(lastProgressEvent);
+  if (liveReadouts.diagnostics) updateDiagnosticsSummary();
+  if (liveReadouts.note) document.querySelector('#demo-note').textContent = lastNoteRaw;
+}
+
+/**
+ * Substitute `{token}` placeholders in a localized template string.
+ * @param {string} template - Localized string containing `{key}` tokens.
+ * @param {Record<string, string>} values - Token replacements.
+ * @returns {string}
+ */
+function fill(template, values) {
+  return Object.entries(values).reduce(
+    (text, [key, value]) => text.replaceAll(`{${key}}`, String(value ?? '')),
+    template,
+  );
 }
 
 function renderPhraseButtons() {
   const grid = document.querySelector('#phrase-grid');
   if (!grid) return;
-  grid.replaceChildren(...CALL_SCENARIOS.map(createPhraseButton));
+  const locale = getLocale();
+  grid.replaceChildren(...CALL_SCENARIOS.map((scenario) => createPhraseButton(scenario, locale)));
 }
 
-function createPhraseButton(scenario) {
+function createPhraseButton(scenario, locale) {
   const button = document.createElement('button');
   button.type = 'button';
-  button.dataset.phrase = scenario.phrase;
-  button.textContent = scenario.buttonLabel;
+  const localized = scenario.localized?.[locale] || scenario.localized?.en || {};
+  const phrase = localized.phrase || scenario.phrase;
+  const label = localized.buttonLabel || scenario.buttonLabel;
+  button.dataset.phrase = phrase;
+  button.textContent = label;
   return button;
 }
 
 function renderScenarioCatalog() {
   const catalog = document.querySelector('#scenario-catalog');
   if (!catalog) return;
-  catalog.replaceChildren(...CALL_SCENARIOS.map(createScenarioCard));
+  const locale = getLocale();
+  catalog.replaceChildren(...CALL_SCENARIOS.map((scenario) => createScenarioCard(scenario, locale)));
 }
 
-function createScenarioCard(scenario) {
+function createScenarioCard(scenario, locale) {
   const card = document.createElement('article');
   card.className = 'scenario-card';
   card.dataset.scenarioId = scenario.id;
-  card.append(createScenarioHeader(scenario), paragraph(scenario.summary), createScenarioMeta(scenario));
+  const localized = scenario.localized?.[locale] || scenario.localized?.en || {};
+  const title = localized.title || scenario.title;
+  const summary = localized.summary || scenario.summary;
+  const phrase = localized.phrase || scenario.phrase;
+  const actions = localized.actions || scenario.actions;
+  card.append(
+    createScenarioHeader(scenario.id, title),
+    paragraph(summary),
+    createScenarioMeta(scenario, phrase, actions),
+  );
   return card;
 }
 
-function createScenarioHeader(scenario) {
+function createScenarioHeader(id, title) {
   const header = document.createElement('header');
   const label = document.createElement('span');
-  const title = document.createElement('h3');
-  label.textContent = scenario.id;
-  title.textContent = scenario.title;
-  header.append(label, title);
+  const titleEl = document.createElement('h3');
+  label.textContent = id;
+  titleEl.textContent = title;
+  header.append(label, titleEl);
   return header;
 }
 
-function createScenarioMeta(scenario) {
+function createScenarioMeta(scenario, phrase, actions) {
   const meta = document.createElement('div');
   meta.className = 'scenario-meta';
-  meta.append(metaBlock('Scenario intent', scenario.scenario_intent));
-  meta.append(metaBlock('Workflow issue type', scenario.workflow?.issue_type || 'none'));
-  meta.append(metaBlock('Sample phrase', scenario.phrase));
-  meta.append(chipBlock('Match terms', scenario.terms));
-  meta.append(chipBlock('Safe actions', scenario.actions.map((action) => action.label)));
+  meta.append(metaBlock(s('meta-intent'), scenario.scenario_intent));
+  meta.append(metaBlock(s('meta-workflow'), scenario.workflow?.issue_type || 'none'));
+  meta.append(metaBlock(s('meta-phrase'), phrase));
+  meta.append(chipBlock(s('meta-terms'), scenario.terms));
+  meta.append(chipBlock(s('meta-actions'), actions.map((action) => action.label)));
   return meta;
 }
 
@@ -232,7 +313,13 @@ async function runVisibleChecks() {
 function draftTicket() {
   const draft = document.querySelector('#ticket-draft');
   if (!(draft instanceof HTMLTextAreaElement)) return;
-  draft.value = `Issue: ${latestIssue || 'No issue captured yet'}\nPage: ${location.pathname}\nSpeech: WASM STT ${STT_MODEL_ID}, Piper ${TTS_VOICE}`;
+  const template = s('ticket-draft-template');
+  const issue = latestIssue || s('ticket-no-issue');
+  draft.value = template
+    .replace('{issue}', issue)
+    .replace('{page}', location.pathname)
+    .replace('{sttModel}', STT_MODEL_ID)
+    .replace('{ttsVoice}', TTS_VOICE);
   showTarget('#target-ticket');
 }
 
@@ -246,26 +333,26 @@ async function runCheck(button) {
   const row = button.closest('[data-check-row]');
   const output = row?.querySelector('output');
   if (!row || !(output instanceof HTMLOutputElement)) return;
-  output.value = 'Checking...';
+  output.value = s('check-checking');
   const result = await checks[button.dataset.check]?.();
   row.dataset.checkState = result?.state || 'fail';
-  output.value = result?.message || 'Check failed.';
+  output.value = result?.message || s('check-failed');
   updateDiagnosticsSummary();
 }
 
 const checks = {
   secure: async () => isSecureContext
-    ? pass('Secure context is active.')
-    : fail('This page is not secure. Use HTTPS or localhost.'),
+    ? pass(s('check-pass-secure'))
+    : fail(s('check-fail-secure')),
   wasm: async () => canCompileWasm()
-    ? pass('WebAssembly module validation passed.')
-    : fail('WebAssembly is not available in this browser.'),
+    ? pass(s('check-pass-wasm'))
+    : fail(s('check-fail-wasm')),
   worker: async () => await canRunWorker()
-    ? pass('Dedicated worker executed a probe.')
-    : fail('Dedicated workers are blocked or unavailable.'),
+    ? pass(s('check-pass-worker'))
+    : fail(s('check-fail-worker')),
   storage: async () => await canUseStorage()
-    ? pass('IndexedDB opened and cleaned up.')
-    : warn('IndexedDB is unavailable; model caching may be limited.'),
+    ? pass(s('check-pass-storage'))
+    : warn(s('check-warn-storage')),
   microphone: async () => await microphoneState(),
 };
 
@@ -322,15 +409,14 @@ async function canUseStorage() {
 }
 
 async function microphoneState() {
-  if (!navigator.mediaDevices?.getUserMedia) return fail('getUserMedia is not available.');
+  if (!navigator.mediaDevices?.getUserMedia) return fail(s('check-fail-mic'));
   try {
     const permission = await navigator.permissions?.query?.({ name: 'microphone' });
-    if (!permission) return warn('Microphone API exists; permission state is unavailable until click.');
-    return permission.state === 'denied'
-      ? fail('Microphone permission is denied for this site.')
-      : pass(`Microphone permission state: ${permission.state}.`);
+    if (!permission) return warn(s('check-warn-mic-no-state'));
+    if (permission.state === 'denied') return fail(s('check-fail-mic-denied'));
+    return pass(`${s('check-pass-mic-prefix')}${permission.state}.`);
   } catch {
-    return warn('Microphone API exists; permission state requires a user gesture.');
+    return warn(s('check-warn-mic-gesture'));
   }
 }
 
@@ -339,8 +425,12 @@ function updateDiagnosticsSummary() {
   const passCount = rows.filter((row) => row.dataset.checkState === 'pass').length;
   const warnCount = rows.filter((row) => row.dataset.checkState === 'warn').length;
   const failCount = rows.filter((row) => row.dataset.checkState === 'fail').length;
-  document.querySelector('#diagnostic-copy').textContent =
-    `${passCount} passing, ${warnCount} warning, ${failCount} failing checks.`;
+  const template = s('diagnostics-summary');
+  document.querySelector('#diagnostic-copy').textContent = template
+    .replace('{pass}', String(passCount))
+    .replace('{warn}', String(warnCount))
+    .replace('{fail}', String(failCount));
+  liveReadouts.diagnostics = true;
 }
 
 function initTabs() {
@@ -365,8 +455,8 @@ function initCopyButton() {
     const button = event.currentTarget;
     const panel = document.querySelector('[role="tabpanel"]:not([hidden])');
     await navigator.clipboard?.writeText?.(panel?.textContent?.trim() || '');
-    button.textContent = 'Copied';
-    setTimeout(() => { button.textContent = 'Copy active snippet'; }, 1400);
+    button.textContent = s('btn-copied');
+    setTimeout(() => { button.textContent = s('btn-copy-snippet'); }, 1400);
   });
 }
 
@@ -375,9 +465,27 @@ function initTheme() {
   button?.addEventListener('click', () => {
     const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
     document.documentElement.dataset.theme = next;
-    button.setAttribute('aria-pressed', String(next === 'light'));
-    button.textContent = next === 'light' ? 'Dark mode' : 'Light mode';
+    button.setAttribute('aria-pressed', String(next === 'dark'));
+    const label = button.querySelector('[data-i18n]');
+    if (label) {
+      const key = next === 'light' ? 'theme-toggle-dark' : 'theme-toggle-light';
+      label.setAttribute('data-i18n', key);
+      label.textContent = s(key);
+    }
     drawStaticWave();
+  });
+}
+
+function initLangToggle() {
+  const toggle = document.querySelector('#lang-toggle');
+  if (!toggle) return;
+  onLocaleChange(reapplyLiveReadouts);
+  toggle.addEventListener('click', () => {
+    const next = getLocale() === 'en' ? 'ko' : 'en';
+    applyLocale(next);
+    renderPhraseButtons();
+    renderScenarioCatalog();
+    if (callCenter?.setLocale) callCenter.setLocale(next);
   });
 }
 
@@ -452,10 +560,15 @@ function line(context, x1, y1, x2, y2) {
 
 function updateStatus(state) {
   document.querySelector('#hero-status').textContent = state;
+  liveReadouts.status = true;
 }
 
+let lastNoteRaw = '';
+
 function updateNote(message) {
-  document.querySelector('#demo-note').textContent = message;
+  lastNoteRaw = String(message ?? '');
+  document.querySelector('#demo-note').textContent = lastNoteRaw;
+  liveReadouts.note = true;
 }
 
 function reducedMotion() {

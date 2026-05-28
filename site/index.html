@@ -7,7 +7,7 @@
   <title>Website AI Call Center Skill</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;700&display=swap" />
   <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="./dist/website-ai-call-center.css" />
   <link rel="stylesheet" href="./styles.css" />
@@ -19,55 +19,62 @@
   <div class="glow-blob glow-indigo" aria-hidden="true"></div>
   <div class="glow-blob glow-pink" aria-hidden="true"></div>
 
-  <a class="skip-link" href="#main">Skip to content</a>
+  <a class="skip-link" href="#main" data-i18n="skip-link">Skip to content</a>
   <header class="site-header" data-section="hero">
-    <a class="brand" href="#hero" aria-label="Website AI Call Center home">
+    <a class="brand" href="#hero" aria-label="Website AI Call Center home" data-i18n-aria="aria-brand">
       <span class="brand-mark" aria-hidden="true"></span>
       <span>website-ai-call-center</span>
     </a>
-    <nav class="site-nav" aria-label="Primary">
-      <a href="#demo">Demo</a>
-      <a href="#scenarios">Scenarios</a>
-      <a href="#architecture">Architecture</a>
-      <a href="#test-path">Test path</a>
-      <a href="#start">Start</a>
+    <nav class="site-nav" aria-label="Primary" data-i18n-aria="aria-nav-primary">
+      <a href="#demo" data-i18n="nav-demo">Demo</a>
+      <a href="#scenarios" data-i18n="nav-scenarios">Scenarios</a>
+      <a href="#architecture" data-i18n="nav-architecture">Architecture</a>
+      <a href="#test-path" data-i18n="nav-test-path">Test path</a>
+      <a href="#start" data-i18n="nav-start">Start</a>
     </nav>
-    <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="true">
-      Dark mode
-    </button>
+    <div class="header-controls">
+      <button class="lang-toggle" id="lang-toggle" type="button" aria-pressed="false" aria-label="Switch language" data-i18n-aria="lang-toggle-label" data-locale="en">
+        <span class="lang-opt" data-lang="en">EN</span>
+        <span class="lang-sep" aria-hidden="true">|</span>
+        <span class="lang-opt" data-lang="ko">KO</span>
+      </button>
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-pressed="false">
+        <span data-i18n="theme-toggle-dark">Dark mode</span>
+      </button>
+    </div>
   </header>
 
   <main id="main">
     <section class="hero section-shell" id="hero" data-nav-section>
       <div class="hero-copy">
-        <p class="eyebrow">Static-site AI support overlay</p>
-        <h1>Add a private AI call-center to any website.</h1>
-        <p class="hero-subcopy">
+        <p class="eyebrow" data-i18n="hero-eyebrow">Static-site AI support overlay</p>
+        <h1 data-i18n="hero-h1">Add a private AI call-center to any website.</h1>
+        <p class="hero-subcopy" data-i18n="hero-subcopy">
           Browser-local STT and TTS. No server, no API key, no Web Speech.
           Drop one <code>&lt;script&gt;</code> into your static site.
         </p>
-        <div class="hero-actions" aria-label="Primary actions">
-          <a class="button button-primary" href="#demo">Try the live demo</a>
-          <a class="button button-ghost" href="https://github.com/cskwork/website-ai-call-center-skill">View on GitHub</a>
+        <div class="hero-actions" aria-label="Primary actions" data-i18n-aria="aria-hero-actions">
+          <a class="button button-primary" href="#demo" data-i18n="btn-demo">Try the live demo</a>
+          <a class="button button-ghost" href="https://github.com/cskwork/website-ai-call-center-skill" data-i18n="btn-github">View on GitHub</a>
         </div>
-        <ul class="badge-row" aria-label="Project highlights">
-          <li>100% client-side</li>
-          <li>WASM</li>
-          <li>Lazy model load</li>
-          <li>MIT</li>
+        <ul class="badge-row" aria-label="Project highlights" data-i18n-aria="aria-badges">
+          <li data-i18n="badge-client">100% client-side</li>
+          <li data-i18n="badge-wasm">WASM</li>
+          <li data-i18n="badge-lazy">Lazy model load</li>
+          <li data-i18n="badge-mit">MIT</li>
         </ul>
       </div>
 
-      <div class="hero-visual" aria-label="Signal preview">
+      <div class="hero-visual" aria-label="Signal preview" data-i18n-aria="aria-signal">
         <div class="signal-card">
           <div class="signal-card-header">
-            <span>Support channel</span>
-            <span class="status-pill" id="hero-status" aria-live="polite" aria-atomic="true">Idle</span>
+            <span data-i18n="signal-channel">Support channel</span>
+            <span class="status-pill" id="hero-status" aria-live="polite" aria-atomic="true" data-i18n-default="status-idle">Idle</span>
           </div>
           <canvas id="wave-canvas" width="680" height="260" aria-hidden="true"></canvas>
           <div class="progress-readout">
-            <span id="model-progress" aria-live="polite">Models stay unloaded until Prepare.</span>
-            <span>non-threaded WASM mode</span>
+            <span id="model-progress" aria-live="polite" data-i18n-default="model-progress-idle">Models stay unloaded until Prepare.</span>
+            <span data-i18n="wasm-mode">non-threaded WASM mode</span>
           </div>
         </div>
       </div>
@@ -75,33 +82,33 @@
 
     <section class="section-shell section-stack" id="what" data-nav-section>
       <div class="section-heading">
-        <p class="eyebrow">What it is</p>
-        <h2>One reusable interaction layer, no app framework required.</h2>
+        <p class="eyebrow" data-i18n="what-eyebrow">What it is</p>
+        <h2 data-i18n="what-h2">One reusable interaction layer, no app framework required.</h2>
       </div>
       <div class="feature-grid">
         <article class="feature-card">
-          <span class="feature-kicker">Drop-in</span>
-          <h3>Framework-agnostic</h3>
-          <p>Plain HTML. Works in Astro, Next export, Hugo, a CMS page, or a raw <code>index.html</code>.</p>
+          <span class="feature-kicker" data-i18n="feature-dropin-kicker">Drop-in</span>
+          <h3 data-i18n="feature-dropin-h3">Framework-agnostic</h3>
+          <p data-i18n="feature-dropin-p">Plain HTML. Works in Astro, Next export, Hugo, a CMS page, or a raw <code>index.html</code>.</p>
         </article>
         <article class="feature-card">
-          <span class="feature-kicker">Local-first</span>
-          <h3>Browser speech stack</h3>
-          <p>Transformers.js <code>onnx-community/distil-small.en</code> q4 for STT and Piper WASM for TTS.</p>
+          <span class="feature-kicker" data-i18n="feature-local-kicker">Local-first</span>
+          <h3 data-i18n="feature-local-h3">Browser speech stack</h3>
+          <p data-i18n="feature-local-p">Transformers.js <code>onnx-community/distil-small.en</code> q4 for STT and Piper WASM for TTS.</p>
         </article>
         <article class="feature-card">
-          <span class="feature-kicker">Safe</span>
-          <h3>Registered actions only</h3>
-          <p>The assistant can run only the actions your page registers. No arbitrary scripts or hidden DOM control.</p>
+          <span class="feature-kicker" data-i18n="feature-safe-kicker">Safe</span>
+          <h3 data-i18n="feature-safe-h3">Registered actions only</h3>
+          <p data-i18n="feature-safe-p">The assistant can run only the actions your page registers. No arbitrary scripts or hidden DOM control.</p>
         </article>
       </div>
     </section>
 
     <section class="section-shell demo-section" id="demo" data-nav-section>
       <div class="section-heading">
-        <p class="eyebrow">Live demo</p>
-        <h2>Talk to the page, then let the page guide itself.</h2>
-        <p>
+        <p class="eyebrow" data-i18n="demo-eyebrow">Live demo</p>
+        <h2 data-i18n="demo-h2">Talk to the page, then let the page guide itself.</h2>
+        <p data-i18n="demo-p">
           This landing page runs the same overlay bundle you ship. Text support works immediately.
           Voice support uses WASM STT/TTS after you press Prepare.
         </p>
@@ -110,38 +117,38 @@
       <div class="demo-layout">
         <div class="demo-card">
           <div class="demo-card-header">
-            <span>Try a support phrase</span>
-            <a href="./examples/vanilla/index.html">Open full demo</a>
+            <span data-i18n="demo-card-header">Try a support phrase</span>
+            <a href="./examples/vanilla/index.html" data-i18n="demo-open-full">Open full demo</a>
           </div>
-          <div class="phrase-grid" id="phrase-grid" aria-label="Sample support phrases"></div>
+          <div class="phrase-grid" id="phrase-grid" aria-label="Sample support phrases" data-i18n-aria="aria-phrase-grid"></div>
           <button class="button button-primary demo-launch" id="launch-demo" type="button">
-            Open support overlay
+            <span data-i18n="btn-open-overlay">Open support overlay</span>
           </button>
-          <p class="demo-note" id="demo-note" aria-live="polite">
+          <p class="demo-note" id="demo-note" aria-live="polite" data-i18n-default="demo-note-default">
             The overlay is mounted from <code>./dist/website-ai-call-center.iife.js</code>.
           </p>
         </div>
 
-        <div class="demo-targets" aria-label="Demo page targets">
+        <div class="demo-targets" aria-label="Demo page targets" data-i18n-aria="aria-demo-targets">
           <article class="target-card" id="target-audio" tabindex="-1">
-            <span>Audio setup</span>
-            <h3>Headset and speaker check</h3>
-            <p>Guide users through output device, mute, and browser permission checks.</p>
+            <span data-i18n="target-audio-kicker">Audio setup</span>
+            <h3 data-i18n="target-audio-h3">Headset and speaker check</h3>
+            <p data-i18n="target-audio-p">Guide users through output device, mute, and browser permission checks.</p>
           </article>
           <article class="target-card" id="target-account" tabindex="-1">
-            <span>Account</span>
-            <h3>Settings and profile path</h3>
-            <p>Show the correct panel and prefill a help query without guessing selectors.</p>
+            <span data-i18n="target-account-kicker">Account</span>
+            <h3 data-i18n="target-account-h3">Settings and profile path</h3>
+            <p data-i18n="target-account-p">Show the correct panel and prefill a help query without guessing selectors.</p>
           </article>
           <article class="target-card" id="target-diagnostics" tabindex="-1">
-            <span>Diagnostics</span>
-            <h3>Browser-local checks</h3>
-            <p id="diagnostic-copy" aria-live="polite">No checks have run yet.</p>
+            <span data-i18n="target-diagnostics-kicker">Diagnostics</span>
+            <h3 data-i18n="target-diagnostics-h3">Browser-local checks</h3>
+            <p id="diagnostic-copy" aria-live="polite" data-i18n-default="diagnostic-copy-default">No checks have run yet.</p>
           </article>
           <article class="target-card" id="target-ticket" tabindex="-1">
-            <span>Escalation</span>
-            <h3>Support ticket draft</h3>
-            <textarea id="ticket-draft" aria-label="Support ticket draft" placeholder="A support draft appears here"></textarea>
+            <span data-i18n="target-ticket-kicker">Escalation</span>
+            <h3 data-i18n="target-ticket-h3">Support ticket draft</h3>
+            <textarea id="ticket-draft" aria-label="Support ticket draft" data-i18n-aria="aria-ticket-draft" data-i18n-placeholder="ticket-placeholder" placeholder="A support draft appears here"></textarea>
           </article>
         </div>
       </div>
@@ -149,69 +156,69 @@
 
     <section class="section-shell section-stack" id="scenarios" data-nav-section>
       <div class="section-heading">
-        <p class="eyebrow">Call scenario catalog</p>
-        <h2>Manage the call flow from one readable list.</h2>
-        <p>
+        <p class="eyebrow" data-i18n="scenarios-eyebrow">Call scenario catalog</p>
+        <h2 data-i18n="scenarios-h2">Manage the call flow from one readable list.</h2>
+        <p data-i18n="scenarios-p">
           Each card comes from validated <code>scenarios/*.yml</code>: intent, workflow route,
           sample phrase, match terms, assistant reply, and the safe actions the page may run.
         </p>
       </div>
-      <div class="scenario-grid" id="scenario-catalog" aria-label="Call scenario catalog"></div>
+      <div class="scenario-grid" id="scenario-catalog" aria-label="Call scenario catalog" data-i18n-aria="aria-scenario-catalog"></div>
     </section>
 
     <section class="section-shell section-stack" id="how" data-nav-section>
       <div class="section-heading">
-        <p class="eyebrow">How it works</p>
-        <h2>Speech and guidance stay modular.</h2>
+        <p class="eyebrow" data-i18n="how-eyebrow">How it works</p>
+        <h2 data-i18n="how-h2">Speech and guidance stay modular.</h2>
       </div>
       <ol class="flow-grid">
         <li>
           <span class="flow-index">01</span>
-          <h3>Mic input</h3>
-          <p>User grants microphone access only after a click.</p>
+          <h3 data-i18n="flow-01-h3">Mic input</h3>
+          <p data-i18n="flow-01-p">User grants microphone access only after a click.</p>
         </li>
         <li>
           <span class="flow-index">02</span>
-          <h3>WASM STT</h3>
-          <p>Transformers.js transcribes through a worker-backed browser model.</p>
+          <h3 data-i18n="flow-02-h3">WASM STT</h3>
+          <p data-i18n="flow-02-p">Transformers.js transcribes through a worker-backed browser model.</p>
         </li>
         <li>
           <span class="flow-index">03</span>
-          <h3>Scenario engine</h3>
-          <p>Local rules or an HTTP adapter choose the next safe guidance step.</p>
+          <h3 data-i18n="flow-03-h3">Scenario engine</h3>
+          <p data-i18n="flow-03-p">Local rules or an HTTP adapter choose the next safe guidance step.</p>
         </li>
         <li>
           <span class="flow-index">04</span>
-          <h3>Piper WASM TTS</h3>
-          <p>The assistant speaks locally after the voice model is prepared.</p>
+          <h3 data-i18n="flow-04-h3">Piper WASM TTS</h3>
+          <p data-i18n="flow-04-p">The assistant speaks locally after the voice model is prepared.</p>
         </li>
       </ol>
     </section>
 
     <section class="section-shell architecture" id="architecture" data-nav-section>
       <div class="section-heading">
-        <p class="eyebrow">Architecture</p>
-        <h2>Copy the static files. Register only safe page actions.</h2>
+        <p class="eyebrow" data-i18n="arch-eyebrow">Architecture</p>
+        <h2 data-i18n="arch-h2">Copy the static files. Register only safe page actions.</h2>
       </div>
 
       <div class="architecture-grid">
-        <pre class="diagram" aria-label="Architecture diagram"><code>website
-  ├─ dist/website-ai-call-center.iife.js
-  ├─ dist/workers/stt-worker.js
-  ├─ dist/workers/tts-worker.js
-  ├─ registered page actions
-  └─ local engine or HTTP AI adapter
+        <pre class="diagram" aria-label="Architecture diagram" data-i18n-aria="aria-arch-diagram"><code>website
+  &#x251C;&#x2500; dist/website-ai-call-center.iife.js
+  &#x251C;&#x2500; dist/workers/stt-worker.js
+  &#x251C;&#x2500; dist/workers/tts-worker.js
+  &#x251C;&#x2500; registered page actions
+  &#x2514;&#x2500; local engine or HTTP AI adapter
 
 browser
-  ├─ Transformers.js WASM STT
-  ├─ Piper WASM TTS
-  └─ CacheStorage / OPFS when available</code></pre>
+  &#x251C;&#x2500; Transformers.js WASM STT
+  &#x251C;&#x2500; Piper WASM TTS
+  &#x2514;&#x2500; CacheStorage / OPFS when available</code></pre>
 
         <div class="code-panel">
-          <div class="tab-list" role="tablist" aria-label="Integration snippets">
-            <button id="tab-html" role="tab" aria-selected="true" aria-controls="panel-html" data-tab="html" type="button">HTML</button>
-            <button id="tab-init" role="tab" aria-selected="false" aria-controls="panel-init" data-tab="init" type="button">Init</button>
-            <button id="tab-actions" role="tab" aria-selected="false" aria-controls="panel-actions" data-tab="actions" type="button">Actions</button>
+          <div class="tab-list" role="tablist" aria-label="Integration snippets" data-i18n-aria="aria-tablist">
+            <button id="tab-html" role="tab" aria-selected="true" aria-controls="panel-html" data-tab="html" type="button" data-i18n="tab-html">HTML</button>
+            <button id="tab-init" role="tab" aria-selected="false" aria-controls="panel-init" data-tab="init" type="button" data-i18n="tab-init">Init</button>
+            <button id="tab-actions" role="tab" aria-selected="false" aria-controls="panel-actions" data-tab="actions" type="button" data-i18n="tab-actions">Actions</button>
           </div>
           <pre id="panel-html" role="tabpanel" aria-labelledby="tab-html"><code>&lt;link rel="stylesheet" href="./dist/website-ai-call-center.css"&gt;
 &lt;script src="./dist/website-ai-call-center.iife.js"&gt;&lt;/script&gt;</code></pre>
@@ -231,101 +238,101 @@ const center = sdk.createWebsiteCallCenter({
       .querySelector('#account')
       ?.scrollIntoView({ block: 'center' })
   });</code></pre>
-          <button class="copy-button" type="button" data-copy-active>Copy active snippet</button>
+          <button class="copy-button" type="button" data-copy-active data-i18n="btn-copy-snippet">Copy active snippet</button>
         </div>
       </div>
     </section>
 
     <section class="section-shell section-stack" id="test-path" data-nav-section>
       <div class="section-heading">
-        <p class="eyebrow">Human test path</p>
-        <h2>Five checks before you publish.</h2>
-        <p>If all five boxes pass on your phone over LTE, the static demo is ready to share.</p>
+        <p class="eyebrow" data-i18n="test-eyebrow">Human test path</p>
+        <h2 data-i18n="test-h2">Five checks before you publish.</h2>
+        <p data-i18n="test-p">If all five boxes pass on your phone over LTE, the static demo is ready to share.</p>
       </div>
-      <div class="checklist" aria-label="Runtime checks">
+      <div class="checklist" aria-label="Runtime checks" data-i18n-aria="aria-checklist">
         <article class="check-card" data-check-row="secure">
-          <h3>Secure context</h3>
-          <p>Required for microphone access. GitHub Pages provides HTTPS.</p>
-          <button type="button" data-check="secure">Run check</button>
-          <output>Not run</output>
+          <h3 data-i18n="check-secure-h3">Secure context</h3>
+          <p data-i18n="check-secure-p">Required for microphone access. GitHub Pages provides HTTPS.</p>
+          <button type="button" data-check="secure" data-i18n="check-secure-btn">Run check</button>
+          <output data-i18n="check-secure-default">Not run</output>
         </article>
         <article class="check-card" data-check-row="wasm">
-          <h3>WASM available</h3>
-          <p>Required by Transformers.js and Piper browser inference.</p>
-          <button type="button" data-check="wasm">Run check</button>
-          <output>Not run</output>
+          <h3 data-i18n="check-wasm-h3">WASM available</h3>
+          <p data-i18n="check-wasm-p">Required by Transformers.js and Piper browser inference.</p>
+          <button type="button" data-check="wasm" data-i18n="check-wasm-btn">Run check</button>
+          <output data-i18n="check-wasm-default">Not run</output>
         </article>
         <article class="check-card" data-check-row="worker">
-          <h3>Worker support</h3>
-          <p>Required to keep model work off the main UI thread.</p>
-          <button type="button" data-check="worker">Run check</button>
-          <output>Not run</output>
+          <h3 data-i18n="check-worker-h3">Worker support</h3>
+          <p data-i18n="check-worker-p">Required to keep model work off the main UI thread.</p>
+          <button type="button" data-check="worker" data-i18n="check-worker-btn">Run check</button>
+          <output data-i18n="check-worker-default">Not run</output>
         </article>
         <article class="check-card" data-check-row="storage">
-          <h3>Browser storage</h3>
-          <p>Model downloads should be cacheable after first load.</p>
-          <button type="button" data-check="storage">Run check</button>
-          <output>Not run</output>
+          <h3 data-i18n="check-storage-h3">Browser storage</h3>
+          <p data-i18n="check-storage-p">Model downloads should be cacheable after first load.</p>
+          <button type="button" data-check="storage" data-i18n="check-storage-btn">Run check</button>
+          <output data-i18n="check-storage-default">Not run</output>
         </article>
         <article class="check-card" data-check-row="microphone">
-          <h3>Microphone API</h3>
-          <p>Permission is requested only after the user starts voice mode.</p>
-          <button type="button" data-check="microphone">Run check</button>
-          <output>Not run</output>
+          <h3 data-i18n="check-mic-h3">Microphone API</h3>
+          <p data-i18n="check-mic-p">Permission is requested only after the user starts voice mode.</p>
+          <button type="button" data-check="microphone" data-i18n="check-mic-btn">Run check</button>
+          <output data-i18n="check-mic-default">Not run</output>
         </article>
       </div>
     </section>
 
     <section class="section-shell start-section" id="start" data-nav-section>
       <div class="section-heading">
-        <p class="eyebrow">Get started</p>
-        <h2>Ship it from a repository, a CDN, or GitHub Pages.</h2>
+        <p class="eyebrow" data-i18n="start-eyebrow">Get started</p>
+        <h2 data-i18n="start-h2">Ship it from a repository, a CDN, or GitHub Pages.</h2>
       </div>
       <div class="start-grid">
         <article class="start-card">
-          <h3>Run locally</h3>
+          <h3 data-i18n="start-local-h3">Run locally</h3>
           <pre><code>npm install
 npm run site:build
 python3 -m http.server 4173 -d _site</code></pre>
         </article>
         <article class="start-card">
-          <h3>Open the working example</h3>
-          <p>The vanilla example contains the concrete page actions, scenario engine, and WASM speech adapters.</p>
-          <a class="button button-ghost" href="./examples/vanilla/index.html">Open examples/vanilla</a>
+          <h3 data-i18n="start-example-h3">Open the working example</h3>
+          <p data-i18n="start-example-p">The vanilla example contains the concrete page actions, scenario engine, and WASM speech adapters.</p>
+          <a class="button button-ghost" href="./examples/vanilla/index.html" data-i18n="btn-open-example">Open examples/vanilla</a>
         </article>
       </div>
     </section>
 
     <section class="section-shell faq-section" id="faq" data-nav-section>
       <div class="section-heading">
-        <p class="eyebrow">FAQ</p>
-        <h2>Designed for static hosting and honest runtime boundaries.</h2>
+        <p class="eyebrow" data-i18n="faq-eyebrow">FAQ</p>
+        <h2 data-i18n="faq-h2">Designed for static hosting and honest runtime boundaries.</h2>
       </div>
       <div class="faq-grid">
         <details open>
-          <summary>Does this use the browser Speech API?</summary>
-          <p>No. The default speech path uses WASM STT and Piper WASM TTS. The fallback is no-op so audio is never silently sent to browser-vendor speech services.</p>
+          <summary data-i18n="faq-q1">Does this use the browser Speech API?</summary>
+          <p data-i18n="faq-a1">No. The default speech path uses WASM STT and Piper WASM TTS. The fallback is no-op so audio is never silently sent to browser-vendor speech services.</p>
         </details>
         <details>
-          <summary>Will it work on GitHub Pages?</summary>
-          <p>Yes for the static overlay, text path, workers, and non-threaded WASM. Models are downloaded lazily from their configured CDNs.</p>
+          <summary data-i18n="faq-q2">Will it work on GitHub Pages?</summary>
+          <p data-i18n="faq-a2">Yes for the static overlay, text path, workers, and non-threaded WASM. Models are downloaded lazily from their configured CDNs.</p>
         </details>
         <details>
-          <summary>Can I connect a real AI backend?</summary>
-          <p>Yes. Swap the local scenario engine for the HTTP adapter and keep the same registered action boundary.</p>
+          <summary data-i18n="faq-q3">Can I connect a real AI backend?</summary>
+          <p data-i18n="faq-a3">Yes. Swap the local scenario engine for the HTTP adapter and keep the same registered action boundary.</p>
         </details>
         <details>
-          <summary>Why are models not committed?</summary>
-          <p>Model binaries are large and should stay out of the repo. First-load downloads are cached by the browser where supported.</p>
+          <summary data-i18n="faq-q4">Why are models not committed?</summary>
+          <p data-i18n="faq-a4">Model binaries are large and should stay out of the repo. First-load downloads are cached by the browser where supported.</p>
         </details>
       </div>
     </section>
   </main>
 
   <footer class="site-footer">
-    <span>MIT template for static AI support overlays.</span>
-    <a href="https://github.com/cskwork/website-ai-call-center-skill/issues">Issues</a>
-    <a href="./docs/browser-support.md">Browser support notes</a>
+    <span data-i18n="footer-copy">MIT template for static AI support overlays.</span>
+    <a href="https://github.com/cskwork/website-ai-call-center-skill/issues" data-i18n="footer-issues">Issues</a>
+    <a href="./docs/browser-support.md" data-i18n="footer-browser-support">Browser support notes</a>
   </footer>
 </body>
 </html>

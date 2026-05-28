@@ -22,3 +22,23 @@ frontend_actions:
 workflow:
   issue_type: product_navigation
   handoff: false
+i18n:
+  ko:
+    title: 계정 찾기
+    button_label: 계정 설정 찾기
+    summary: 계정, 설정, 프로필, 로그인 도움말이 어디 있는지 안내합니다.
+    utterances:
+      - 계정 설정을 못 찾겠어요
+      - 프로필 페이지가 어디예요
+      - 로그인 설정이 필요해요
+    reply:
+      text: 계정 경로로 안내해 드릴게요. 등록된 페이지 영역으로만 동작을 제한합니다.
+    frontend_actions:
+      - id: show-account
+        label: 계정 경로 보기
+    match:
+      keywords:
+        - 계정
+        - 설정
+        - 프로필
+        - 로그인

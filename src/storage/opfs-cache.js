@@ -1,6 +1,17 @@
 const DEFAULT_NAMESPACE = 'website-ai-call-center-models';
 const MAX_SAFE_NAME = 200;
 
+/**
+ * Create an OPFS-backed asset cache with a Cache-like interface. Fails open:
+ * when OPFS is unavailable or a read errors, `match` returns a cache miss so
+ * the caller falls back to the network.
+ *
+ * @param {object} [options]
+ * @param {string} [options.namespace] OPFS directory namespace.
+ * @returns {{ put: (url: string, response: Response) => Promise<void>,
+ *   match: (url: string) => Promise<Response|undefined>,
+ *   isAvailable: () => Promise<boolean> }}
+ */
 export function createOpfsCache({ namespace = DEFAULT_NAMESPACE } = {}) {
   let dirHandlePromise = null;
   let unavailable = false;

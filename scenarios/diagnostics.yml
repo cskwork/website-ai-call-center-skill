@@ -22,3 +22,23 @@ frontend_actions:
 workflow:
   issue_type: technical_support
   handoff: false
+i18n:
+  ko:
+    title: 브라우저 진단
+    button_label: 진단 실행
+    summary: 보안 컨텍스트, WASM, 워커, 저장소, 마이크 접근을 정직하게 로컬에서 점검합니다.
+    utterances:
+      - 페이지가 오프라인이라고 떠서 진단이 필요해요
+      - 네트워크 점검이 실패해요
+      - 브라우저 진단을 실행해 주세요
+    reply:
+      text: 브라우저 기능을 정직하게 점검하고 진단 카드를 보여드릴게요.
+    frontend_actions:
+      - id: run-checks
+        label: 브라우저 점검 실행
+    match:
+      keywords:
+        - 오프라인
+        - 진단
+        - 네트워크
+        - 페이지

@@ -11,6 +11,25 @@ const DEFAULT_WASM_PATHS = Object.freeze({
   piperWasm: 'https://cdn.jsdelivr.net/npm/@diffusionstudio/piper-wasm@1.0.0/build/piper_phonemize.wasm',
 });
 
+/**
+ * Create a Piper WASM text-to-speech adapter running in a Web Worker. On any
+ * init/synthesis failure it marks itself degraded and delegates to a fallback
+ * adapter (no-op by default), so speech never throws to the caller.
+ *
+ * @param {object} [options]
+ * @param {typeof Worker} [options.WorkerCtor] Worker constructor.
+ * @param {{ prepare?: Function, speak?: Function, stop?: Function }} [options.fallback] Degraded-mode adapter.
+ * @param {string} [options.modelId] Piper model id.
+ * @param {string} [options.voice] Voice id.
+ * @param {string} [options.dtype] Model dtype.
+ * @param {boolean} [options.preferOpfsCache] Prefer OPFS caching.
+ * @param {boolean} [options.useOpfsCache] Cache models in OPFS.
+ * @param {object} [options.wasmPaths] CDN paths for WASM/data assets.
+ * @param {string|null} [options.workerBaseUrl] Worker base URL.
+ * @param {string|null} [options.workerUrl] Explicit worker URL.
+ * @returns {{ prepare: (onProgress?: ProgressReporter) => Promise<void>,
+ *   speak: (text: string) => Promise<void>, stop: () => void }}
+ */
 export function createPiperTtsAdapter({
   WorkerCtor = globalThis.Worker,
   fallback = createNoopTtsAdapter(),
@@ -40,7 +59,7 @@ export function createPiperTtsAdapter({
       worker.postMessage({ type: 'init', modelId, voice, dtype, useOpfsCache, wasmPaths });
       await ready;
       degraded = false;
-      return;
+      return ready;
     } catch (error) {
       markDegraded(error);
       await fallback?.prepare?.(onProgress);

@@ -1,3 +1,13 @@
+/**
+ * Create a no-op STT adapter that returns a canned transcript. Useful for
+ * tests, text-only deployments, and as a safe default.
+ *
+ * @param {object} [options]
+ * @param {string} [options.transcript] Transcript returned by `stop()`.
+ * @returns {{ prepare: (report?: Function) => Promise<void>,
+ *   start: (listener?: Function) => Promise<void>,
+ *   stop: () => Promise<{ text: string, final: boolean, source: string }> }}
+ */
 export function createNoopSttAdapter({ transcript = 'I need help with this page.' } = {}) {
   let onTranscript = null;
 

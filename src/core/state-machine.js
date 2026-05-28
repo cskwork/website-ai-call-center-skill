@@ -8,6 +8,15 @@ const TRANSITIONS = Object.freeze({
   ended: ['idle', 'preparing'],
 });
 
+/**
+ * Create the call-flow state machine. Transitions are validated against
+ * `TRANSITIONS`; an invalid request returns `{ ok: false }` instead of moving.
+ * The `onChange` callback fires only on an accepted move.
+ *
+ * @param {(event: { previous: string, state: string, meta: object }) => void} [onChange]
+ * @returns {{ getState: () => string, canTransition: (next: string) => boolean,
+ *   transition: (next: string, meta?: object) => object, reset: () => object }}
+ */
 export function createCallStateMachine(onChange = () => {}) {
   let state = 'idle';
 
