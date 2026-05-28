@@ -3,6 +3,24 @@ import { blobTo16KhzPcm } from './media-utils.js';
 
 const DEFAULT_MODEL = 'onnx-community/distil-small.en';
 
+/**
+ * Create a WASM speech-to-text adapter that runs in a Web Worker. A failed
+ * `prepare()` is not cached as a permanent rejection: `ready`/`worker` are
+ * cleared so a later call can retry instead of bricking the session.
+ *
+ * @param {object} [options]
+ * @param {typeof Worker} [options.WorkerCtor] Worker constructor.
+ * @param {string} [options.dtype] Model quantization dtype.
+ * @param {string|null} [options.localModelPath] Local model path.
+ * @param {string} [options.modelId] Model id.
+ * @param {boolean} [options.useLocalModels] Use local models only.
+ * @param {boolean} [options.useOpfsCache] Cache models in OPFS.
+ * @param {string|null} [options.workerBaseUrl] Worker base URL.
+ * @param {string|null} [options.workerUrl] Explicit worker URL.
+ * @returns {{ prepare: (onProgress?: Function) => Promise<void>,
+ *   start: (onTranscript?: Function) => Promise<void>,
+ *   stop: () => Promise<{ text: string, final: boolean, source: string, durationMs?: number }> }}
+ */
 export function createWasmSttAdapter({
   WorkerCtor = globalThis.Worker,
   dtype = 'q4',
@@ -26,6 +44,8 @@ export function createWasmSttAdapter({
     if (ready) return ready;
     worker = createWorker(WorkerCtor, resolveAssetUrl('workers/stt-worker.js', workerUrl, workerBaseUrl));
     ready = new Promise((resolve, reject) => wireWorker(resolve, reject));
+    // On init failure, clear cached state so a later prepare() can retry.
+    ready.catch(() => resetWorker());
     worker.postMessage({ type: 'init', dtype, modelId, localModelPath, useLocalModels, useOpfsCache });
     return ready;
   }
@@ -86,6 +106,12 @@ export function createWasmSttAdapter({
     mediaRecorder = null;
   }
 
+  function resetWorker() {
+    worker?.terminate?.();
+    worker = null;
+    ready = null;
+  }
+
   return { prepare, start, stop };
 }
 
@@ -95,6 +121,7 @@ function createWorker(WorkerCtor, workerUrl) {
 }
 
 function createRecorder(stream) {
+  if (typeof MediaRecorder === 'undefined') throw new Error('MediaRecorder is unavailable in this browser.');
   const mimeType = MediaRecorder.isTypeSupported?.('audio/webm') ? 'audio/webm' : '';
   return mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
 }

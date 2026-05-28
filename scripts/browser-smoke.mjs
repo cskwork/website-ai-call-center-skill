@@ -31,12 +31,44 @@ try {
   await page.waitForSelector('text=Browser reports');
   await page.click('.waicc-close');
   await page.waitForSelector('.waicc-panel', { state: 'hidden' });
+  await assertFocusStaysInDialog(page);
   await page.goto(`http://127.0.0.1:${port}/examples/esm-smoke/index.html`);
   await page.waitForFunction(() => window.__esmSmoke?.ok === true);
   console.log('browser-smoke: ok');
 } finally {
   await browser?.close?.();
   await new Promise((resolve) => server.close(resolve));
+}
+
+/**
+ * Regression for the modal focus-trap fix: when the focused End button hides on
+ * endCall (state -> 'ended'), focus must stay inside the open dialog, never fall
+ * to document.body (WCAG 2.4.3). Uses noop adapters so prepare resolves offline.
+ *
+ * @param {import('playwright').Page} page
+ */
+async function assertFocusStaysInDialog(page) {
+  const result = await page.evaluate(async () => {
+    const sdk = window.WebsiteAICallCenter;
+    const center = sdk.createWebsiteCallCenter({});
+    const roots = document.querySelectorAll('.waicc-root');
+    const root = roots[roots.length - 1]; // the overlay just created above
+    root.querySelector('.waicc-fab').click();
+    await center.prepare();
+    const end = root.querySelector('[data-waicc="end"]');
+    if (!end || end.hidden) return { error: 'End button not visible after prepare' };
+    end.focus();
+    end.click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    const panel = root.querySelector('.waicc-panel');
+    const active = document.activeElement;
+    const inside = !!active && active !== document.body && panel.contains(active);
+    center.destroy();
+    return { inside, endHidden: end.hidden };
+  });
+  if (result.error) throw new Error(`focus-trap regression: ${result.error}`);
+  if (!result.endHidden) throw new Error('focus-trap regression: End button did not hide on endCall');
+  if (!result.inside) throw new Error('focus-trap regression: focus escaped the dialog when End hid');
 }
 
 function serve(req, res) {

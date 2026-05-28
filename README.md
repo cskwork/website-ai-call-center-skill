@@ -63,12 +63,62 @@ const actions = createSafeActionRegistry({
 });
 
 const center = createWebsiteCallCenter({
+  locale: 'ko', // optional; defaults to 'en'. Accepts BCP-47-ish tags ('ko-KR' -> 'ko').
   actionRegistry: actions,
   stt: createWasmSttAdapter({ modelId: 'onnx-community/distil-small.en', dtype: 'q4' }),
   tts: createPiperTtsAdapter({ fallback: createNoopTtsAdapter() }),
   engine: createHttpEngineAdapter({ endpoint: '/api/support-call' }),
 });
 ```
+
+## Internationalization (i18n)
+
+The overlay UI ships built-in English (`en`, default) and Korean (`ko`) strings. English is the
+fallback for any missing value. There are no i18n libraries or runtime dependencies; localization
+is plain frozen string maps.
+
+### SDK options: `locale` and `strings`
+
+Both options are optional and backward compatible. With neither set, behavior is unchanged English.
+
+```js
+const center = createWebsiteCallCenter({
+  locale: 'ko',          // matched against ['en','ko']; region/case-insensitive; falls back to 'en'.
+  strings: {             // optional deep-merge overrides on top of the resolved locale.
+    title: 'Help desk',
+    status: { listening: 'Listening now' },
+  },
+  engine,
+});
+```
+
+- `locale` is resolved with `resolveLocale(requested)` (`'ko-KR'` -> `'ko'`, unknown -> `'en'`).
+- `strings` deep-merges over the locale dictionary; unspecified keys keep the locale default.
+- If `options.title` is provided it overrides the localized `title` (caller-localized title wins).
+- Strings are built with `createUiStrings(locale, overrides)` and returned deeply frozen.
+
+### Live language switching
+
+The returned center exposes `setLocale(locale)` and `setStrings(overrides)`; both recompute the
+overlay strings and re-render the status pill and footer controls live with no reload:
+
+```js
+center.setLocale('ko');               // swap to Korean live
+center.setStrings({ send: 'Submit' }); // override individual keys in the current locale
+```
+
+Exposed i18n primitives (also available on `window.WebsiteAICallCenter` in the IIFE build):
+`createUiStrings`, `resolveLocale`, `UI_STRINGS`, `UI_LOCALES`, `DEFAULT_LOCALE`, `controlsForState`.
+
+### Landing page language toggle
+
+The landing page (`site/index.html` + `site/landing.js` + `site/i18n.js`) renders an `EN | KO`
+toggle (`#lang-toggle`) next to the theme toggle. Initial locale precedence:
+`?lang=` URL param -> `localStorage['waicc-locale']` -> `navigator.language` -> `'en'`. The choice
+persists to `localStorage`, syncs `<html lang>`, swaps every `[data-i18n]` text node via
+`textContent`, re-renders the phrase buttons and scenario catalog in the active locale, and calls
+`center.setLocale(locale)` so the overlay follows. English text stays inline in the HTML as the
+no-JS default. All localized landing strings live in `site/i18n.js` (`LANDING_STRINGS.en` / `.ko`).
 
 
 ## Worker assets
@@ -134,6 +184,52 @@ npm run scenarios:build
 ```
 
 `site/landing.js` renders the phrase buttons and visible scenario catalog from the generated runtime file.
+
+### Scenario localization (`i18n.ko`)
+
+Each scenario may carry an optional top-level `i18n.ko` block to localize the catalog, demo phrase,
+reply, and action labels for Korean. Every field is optional and falls back field-by-field to the
+English (top-level) values, so partial translations are safe. Action `id`s may not be invented in
+`i18n.ko`: every `frontend_actions[].id` under `i18n.ko` must already exist in the English
+`frontend_actions` (only the `label` is localized). The build throws a clear error otherwise.
+
+```yaml
+id: audio
+catalog_order: 10
+scenario_intent: audio_issue
+title: Audio setup
+utterances:
+  - I cannot hear audio during a support call
+match:
+  keywords: [audio, hear, speaker]
+reply:
+  text: I can guide audio setup.
+frontend_actions:
+  - id: show-audio
+    label: Show audio setup
+workflow:
+  issue_type: technical_support
+i18n:
+  ko:
+    title: 오디오 설정
+    button_label: 소리가 안 나와요
+    summary: 헤드셋, 스피커, 음소거, 브라우저 권한을 점검하도록 안내합니다.
+    utterances: [상담 중에 소리가 안 들려요, 스피커가 음소거됐어요, 소리가 안 나와요]
+    reply:
+      text: 오디오 설정을 안내해 드릴게요. 헤드셋 패널부터 확인하세요.
+    frontend_actions:
+      - id: show-audio
+        label: 오디오 설정 보기
+    match:
+      keywords: [소리, 오디오, 스피커, 음소거]
+```
+
+The generator emits a `localized: { en, ko }` map per scenario alongside the flat English fields
+(kept for back-compat). Keyword matching is locale-agnostic: `terms` is the deduped **union** of the
+English and Korean `match.keywords`, so Korean input matches even when the UI is English and vice
+versa. At runtime, `getScenarioReply(text, locale)` and `getScenarioReplyForIntent(intent, locale)`
+return the reply text and action labels for the requested locale (English fallback);
+`localizedScenario(scenario, locale)` returns the per-locale catalog view used by the landing page.
 
 ## Intent detection
 

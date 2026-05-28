@@ -54,20 +54,75 @@ function assertValidScenario(file, parsed) {
 }
 
 function toRuntimeScenario(entry) {
+  const en = localizedView(entry);
+  const ko = localizedView(entry, entry.i18n?.ko);
+  assertKoActionIds(entry.id, en.actions, ko.actions);
   return {
     id: entry.id,
     catalogOrder: entry.catalog_order ?? Number.MAX_SAFE_INTEGER,
     scenario_intent: entry.scenario_intent,
-    title: entry.title,
-    buttonLabel: entry.button_label,
-    summary: entry.summary,
-    phrase: entry.utterances[0],
-    utterances: entry.utterances,
-    terms: entry.match.keywords,
-    replyText: entry.reply.text,
-    actions: entry.frontend_actions,
+    title: en.title,
+    buttonLabel: en.buttonLabel,
+    summary: en.summary,
+    phrase: en.phrase,
+    utterances: en.utterances,
+    terms: unionTerms(entry.match.keywords, entry.i18n?.ko?.match?.keywords),
+    replyText: en.replyText,
+    actions: en.actions,
     workflow: entry.workflow,
+    localized: { en, ko },
   };
+}
+
+/**
+ * Build a per-locale view of a scenario. With no overrides, returns the EN view;
+ * with `overrides` (from `i18n.ko`), each field falls back to EN when absent.
+ * @param {object} entry parsed scenario YAML
+ * @param {object} [overrides] localized overrides (e.g. entry.i18n.ko)
+ * @returns {{title,buttonLabel,summary,phrase,utterances,replyText,actions}}
+ */
+function localizedView(entry, overrides = undefined) {
+  const utterances = overrides?.utterances ?? entry.utterances;
+  return {
+    title: overrides?.title ?? entry.title,
+    buttonLabel: overrides?.button_label ?? entry.button_label,
+    summary: overrides?.summary ?? entry.summary,
+    phrase: utterances[0],
+    utterances,
+    replyText: overrides?.reply?.text ?? entry.reply.text,
+    actions: localizedActions(entry.frontend_actions, overrides?.frontend_actions),
+  };
+}
+
+function localizedActions(enActions, koActions) {
+  if (!koActions) return enActions;
+  const labelById = new Map(koActions.map((action) => [action.id, action.label]));
+  return enActions.map((action) => ({ id: action.id, label: labelById.get(action.id) ?? action.label }));
+}
+
+function unionTerms(enKeywords, koKeywords = []) {
+  const seen = new Set();
+  const merged = [];
+  for (const term of [...enKeywords, ...koKeywords]) {
+    const key = normalizeTerm(term);
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    merged.push(term);
+  }
+  return merged;
+}
+
+function normalizeTerm(term) {
+  return String(term || '').toLowerCase().normalize('NFKC').replace(/\s+/g, ' ').trim();
+}
+
+function assertKoActionIds(id, enActions, koActions) {
+  const enIds = new Set(enActions.map((action) => action.id));
+  for (const action of koActions) {
+    if (!enIds.has(action.id)) {
+      throw new Error(`${id}: i18n.ko.frontend_actions id "${action.id}" is not in EN frontend_actions ids`);
+    }
+  }
 }
 
 function assertUnique(entries, field) {

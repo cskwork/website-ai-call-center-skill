@@ -9,3 +9,6 @@ export { createNoopSttAdapter } from './stt/noop-stt-adapter.js';
 export { createPiperTtsAdapter } from './tts/piper-tts-adapter.js';
 export { createNoopTtsAdapter } from './tts/noop-tts-adapter.js';
 export { createWorkerAssetUrls, resolveAssetUrl } from './core/asset-base.js';
+export { controlsForState } from './ui/overlay.js';
+export { resolveLocale, createUiStrings } from './i18n/resolve-locale.js';
+export { UI_STRINGS, UI_LOCALES, DEFAULT_LOCALE } from './i18n/ui-strings.js';
