@@ -1,3 +1,16 @@
+/**
+ * Create an engine adapter backed by an HTTP endpoint. Every request has an
+ * explicit timeout via AbortController and rejects on non-2xx responses.
+ *
+ * @param {object} options
+ * @param {string} options.endpoint Engine endpoint URL.
+ * @param {typeof fetch} [options.fetchImpl] Fetch implementation (for testing).
+ * @param {Record<string, string>} [options.headers] Extra request headers.
+ * @param {number} [options.timeoutMs] Per-request timeout in milliseconds.
+ * @returns {{ startSession: (metadata?: object) => Promise<object>,
+ *   sendUserText: (text: string, context?: object) => Promise<object>,
+ *   endSession: () => Promise<void> }}
+ */
 export function createHttpEngineAdapter({ endpoint, fetchImpl = globalThis.fetch, headers = {}, timeoutMs = 20000 }) {
   if (!endpoint) throw new Error('HTTP engine requires an endpoint.');
   let sessionId = null;

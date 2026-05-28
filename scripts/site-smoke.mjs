@@ -36,6 +36,7 @@ try {
   await page.waitForFunction(() => document.querySelector('#target-audio')?.classList.contains('waicc-highlight'));
   await page.click('[data-check="wasm"]');
   await page.waitForSelector('[data-check-row="wasm"][data-check-state="pass"]');
+  await assertLiveReadoutSurvivesLocaleSwitch(page);
   await page.click('[data-tab="actions"]');
   await page.waitForSelector('#panel-actions:not([hidden])');
   await page.goto(`http://127.0.0.1:${port}/examples/vanilla/index.html`);
@@ -46,6 +47,26 @@ try {
 } finally {
   await browser?.close?.();
   await new Promise((resolve) => server.close(resolve));
+}
+
+/**
+ * Regression for the i18n state-loss fix: a live diagnostics summary must NOT
+ * revert to the static i18n default when the language is toggled. After running
+ * a check, #diagnostic-copy holds a live pass/warn/fail summary; toggling KO
+ * must keep a live summary (re-localized), not the placeholder default.
+ *
+ * @param {import('playwright').Page} page
+ */
+async function assertLiveReadoutSurvivesLocaleSwitch(page) {
+  const before = (await page.textContent('#diagnostic-copy'))?.trim() ?? '';
+  const defaults = ['No checks have run yet.', '아직 점검이 실행되지 않았습니다.'];
+  if (defaults.includes(before)) throw new Error('i18n regression: diagnostics summary was not live before toggle');
+  await page.click('#lang-toggle');
+  await page.waitForFunction(() => document.documentElement.lang === 'ko');
+  const after = (await page.textContent('#diagnostic-copy'))?.trim() ?? '';
+  if (defaults.includes(after)) throw new Error('i18n regression: live diagnostics summary reverted to default on locale switch');
+  await page.click('#lang-toggle');
+  await page.waitForFunction(() => document.documentElement.lang === 'en');
 }
 
 function serve(req, res) {

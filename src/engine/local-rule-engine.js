@@ -7,6 +7,17 @@ const DEFAULT_SCENARIOS = Object.freeze([
   },
 ]);
 
+/**
+ * Create a fully client-side rule engine that selects a scenario by keyword
+ * score and returns its canned reply. No network, no model.
+ *
+ * @param {object} [options]
+ * @param {object[]} [options.scenarios] Keyword scenarios to match against.
+ * @param {object} [options.fallback] Scenario used when nothing matches.
+ * @returns {{ startSession: () => Promise<object>,
+ *   sendUserText: (text: string, context?: object) => Promise<object>,
+ *   endSession: () => Promise<void> }}
+ */
 export function createLocalRuleEngine({ scenarios = DEFAULT_SCENARIOS, fallback } = {}) {
   let sessionId = null;
 
@@ -15,7 +26,9 @@ export function createLocalRuleEngine({ scenarios = DEFAULT_SCENARIOS, fallback 
     return { sessionId };
   }
 
-  async function sendUserText(text) {
+  // context is accepted for adapter signature symmetry; unused by the local engine.
+  async function sendUserText(text, context = {}) {
+    void context;
     const scenario = selectScenario(String(text || ''), scenarios) || fallbackScenario(fallback);
     return {
       sessionId,
@@ -32,6 +45,14 @@ export function createLocalRuleEngine({ scenarios = DEFAULT_SCENARIOS, fallback 
   return { startSession, sendUserText, endSession };
 }
 
+/**
+ * Pick the highest-scoring scenario for the given text, or `null` if none
+ * match. Scoring is length-weighted keyword inclusion on normalized text.
+ *
+ * @param {string} text User input.
+ * @param {object[]} scenarios Candidate scenarios.
+ * @returns {object|null} The best-matching scenario or null.
+ */
 export function selectScenario(text, scenarios) {
   const normalized = normalize(text);
   return scenarios

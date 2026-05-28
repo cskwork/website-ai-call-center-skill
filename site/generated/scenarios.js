@@ -9,11 +9,31 @@ export const CALL_SCENARIOS = Object.freeze([
   "hear",
   "speaker",
   "sound",
-  "mute"
+  "mute",
+  "소리",
+  "오디오",
+  "스피커",
+  "음소거",
+  "안 들",
+  "안들"
 ]), "replyText": "I can guide audio setup. Start with the headset panel, then run browser checks if voice still fails.", "actions": Object.freeze([
   Object.freeze({ "id": "show-audio", "label": "Show audio setup" }),
   Object.freeze({ "id": "run-checks", "label": "Run browser checks" })
-]), "workflow": Object.freeze({ "issue_type": "technical_support", "handoff": false }) }),
+]), "workflow": Object.freeze({ "issue_type": "technical_support", "handoff": false }), "localized": Object.freeze({ "en": Object.freeze({ "title": "Audio setup", "buttonLabel": "Audio is broken", "summary": "Guides headset, speaker, mute, and browser permission checks.", "phrase": "I cannot hear audio during a support call", "utterances": Object.freeze([
+  "I cannot hear audio during a support call",
+  "My speaker is muted",
+  "Sound is not working"
+]), "replyText": "I can guide audio setup. Start with the headset panel, then run browser checks if voice still fails.", "actions": Object.freeze([
+  Object.freeze({ "id": "show-audio", "label": "Show audio setup" }),
+  Object.freeze({ "id": "run-checks", "label": "Run browser checks" })
+]) }), "ko": Object.freeze({ "title": "오디오 설정", "buttonLabel": "소리가 안 나와요", "summary": "헤드셋, 스피커, 음소거, 브라우저 권한을 점검하도록 안내합니다.", "phrase": "상담 중에 소리가 안 들려요", "utterances": Object.freeze([
+  "상담 중에 소리가 안 들려요",
+  "스피커가 음소거됐어요",
+  "소리가 안 나와요"
+]), "replyText": "오디오 설정을 안내해 드릴게요. 헤드셋 패널부터 확인하고, 그래도 음성이 안 되면 브라우저 점검을 실행하세요.", "actions": Object.freeze([
+  Object.freeze({ "id": "show-audio", "label": "오디오 설정 보기" }),
+  Object.freeze({ "id": "run-checks", "label": "브라우저 점검 실행" })
+]) }) }) }),
   Object.freeze({ "id": "account", "catalogOrder": 20, "scenario_intent": "account_navigation", "title": "Account path", "buttonLabel": "Find account settings", "summary": "Shows where account, settings, profile, and login help live.", "phrase": "I cannot find account settings", "utterances": Object.freeze([
   "I cannot find account settings",
   "Where is my profile page",
@@ -22,10 +42,26 @@ export const CALL_SCENARIOS = Object.freeze([
   "account",
   "settings",
   "profile",
-  "login"
+  "login",
+  "계정",
+  "설정",
+  "프로필",
+  "로그인"
 ]), "replyText": "I can point you to the account path and keep the action limited to a registered page target.", "actions": Object.freeze([
   Object.freeze({ "id": "show-account", "label": "Show account path" })
-]), "workflow": Object.freeze({ "issue_type": "product_navigation", "handoff": false }) }),
+]), "workflow": Object.freeze({ "issue_type": "product_navigation", "handoff": false }), "localized": Object.freeze({ "en": Object.freeze({ "title": "Account path", "buttonLabel": "Find account settings", "summary": "Shows where account, settings, profile, and login help live.", "phrase": "I cannot find account settings", "utterances": Object.freeze([
+  "I cannot find account settings",
+  "Where is my profile page",
+  "I need login settings"
+]), "replyText": "I can point you to the account path and keep the action limited to a registered page target.", "actions": Object.freeze([
+  Object.freeze({ "id": "show-account", "label": "Show account path" })
+]) }), "ko": Object.freeze({ "title": "계정 찾기", "buttonLabel": "계정 설정 찾기", "summary": "계정, 설정, 프로필, 로그인 도움말이 어디 있는지 안내합니다.", "phrase": "계정 설정을 못 찾겠어요", "utterances": Object.freeze([
+  "계정 설정을 못 찾겠어요",
+  "프로필 페이지가 어디예요",
+  "로그인 설정이 필요해요"
+]), "replyText": "계정 경로로 안내해 드릴게요. 등록된 페이지 영역으로만 동작을 제한합니다.", "actions": Object.freeze([
+  Object.freeze({ "id": "show-account", "label": "계정 경로 보기" })
+]) }) }) }),
   Object.freeze({ "id": "diagnostics", "catalogOrder": 30, "scenario_intent": "browser_diagnostics", "title": "Browser diagnostics", "buttonLabel": "Run diagnostics", "summary": "Runs honest local checks for secure context, WASM, workers, storage, and mic access.", "phrase": "My page says offline and I need diagnostics", "utterances": Object.freeze([
   "My page says offline and I need diagnostics",
   "The network check is failing",
@@ -34,10 +70,26 @@ export const CALL_SCENARIOS = Object.freeze([
   "offline",
   "diagnostic",
   "network",
-  "page"
+  "page",
+  "오프라인",
+  "진단",
+  "네트워크",
+  "페이지"
 ]), "replyText": "I can run honest browser capability checks and show the diagnostics card.", "actions": Object.freeze([
   Object.freeze({ "id": "run-checks", "label": "Run browser checks" })
-]), "workflow": Object.freeze({ "issue_type": "technical_support", "handoff": false }) }),
+]), "workflow": Object.freeze({ "issue_type": "technical_support", "handoff": false }), "localized": Object.freeze({ "en": Object.freeze({ "title": "Browser diagnostics", "buttonLabel": "Run diagnostics", "summary": "Runs honest local checks for secure context, WASM, workers, storage, and mic access.", "phrase": "My page says offline and I need diagnostics", "utterances": Object.freeze([
+  "My page says offline and I need diagnostics",
+  "The network check is failing",
+  "Run browser diagnostics"
+]), "replyText": "I can run honest browser capability checks and show the diagnostics card.", "actions": Object.freeze([
+  Object.freeze({ "id": "run-checks", "label": "Run browser checks" })
+]) }), "ko": Object.freeze({ "title": "브라우저 진단", "buttonLabel": "진단 실행", "summary": "보안 컨텍스트, WASM, 워커, 저장소, 마이크 접근을 정직하게 로컬에서 점검합니다.", "phrase": "페이지가 오프라인이라고 떠서 진단이 필요해요", "utterances": Object.freeze([
+  "페이지가 오프라인이라고 떠서 진단이 필요해요",
+  "네트워크 점검이 실패해요",
+  "브라우저 진단을 실행해 주세요"
+]), "replyText": "브라우저 기능을 정직하게 점검하고 진단 카드를 보여드릴게요.", "actions": Object.freeze([
+  Object.freeze({ "id": "run-checks", "label": "브라우저 점검 실행" })
+]) }) }) }),
   Object.freeze({ "id": "ticket", "catalogOrder": 40, "scenario_intent": "escalation_ticket", "title": "Ticket draft", "buttonLabel": "Draft ticket", "summary": "Creates an escalation draft with the captured issue, page path, and speech mode.", "phrase": "I need to draft a technical support ticket", "utterances": Object.freeze([
   "I need to draft a technical support ticket",
   "Please escalate this to an agent",
@@ -46,8 +98,25 @@ export const CALL_SCENARIOS = Object.freeze([
   "ticket",
   "case",
   "agent",
-  "support"
+  "support",
+  "티켓",
+  "케이스",
+  "상담원",
+  "지원",
+  "에스컬"
 ]), "replyText": "I can draft a support ticket with the current page path and your issue summary.", "actions": Object.freeze([
   Object.freeze({ "id": "draft-ticket", "label": "Draft support ticket" })
-]), "workflow": Object.freeze({ "issue_type": "escalation", "handoff": true }) })
+]), "workflow": Object.freeze({ "issue_type": "escalation", "handoff": true }), "localized": Object.freeze({ "en": Object.freeze({ "title": "Ticket draft", "buttonLabel": "Draft ticket", "summary": "Creates an escalation draft with the captured issue, page path, and speech mode.", "phrase": "I need to draft a technical support ticket", "utterances": Object.freeze([
+  "I need to draft a technical support ticket",
+  "Please escalate this to an agent",
+  "Create a case for support"
+]), "replyText": "I can draft a support ticket with the current page path and your issue summary.", "actions": Object.freeze([
+  Object.freeze({ "id": "draft-ticket", "label": "Draft support ticket" })
+]) }), "ko": Object.freeze({ "title": "티켓 작성", "buttonLabel": "티켓 작성", "summary": "수집된 문제, 페이지 경로, 음성 모드로 에스컬레이션 초안을 만듭니다.", "phrase": "기술 지원 티켓을 작성하고 싶어요", "utterances": Object.freeze([
+  "기술 지원 티켓을 작성하고 싶어요",
+  "상담원에게 에스컬레이션해 주세요",
+  "지원 케이스를 만들어 주세요"
+]), "replyText": "현재 페이지 경로와 문제 요약으로 지원 티켓 초안을 작성해 드릴게요.", "actions": Object.freeze([
+  Object.freeze({ "id": "draft-ticket", "label": "지원 티켓 작성" })
+]) }) }) })
 ]);
