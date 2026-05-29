@@ -272,6 +272,6 @@ Notes for static hosting:
 - Voice mode remains WASM-based: Transformers.js STT and Piper TTS load lazily after the user clicks Prepare.
 - GitHub Pages cannot add cross-origin isolation headers, so the template uses non-threaded/browser-safe WASM paths.
 
-See `docs/integration.md`, `docs/privacy.md`, and `docs/browser-support.md` before production use.
+See `docs/integration.md`, `docs/privacy.md`, `docs/compliance.md`, and `docs/browser-support.md` before production use.
 
 `examples/vanilla/` is intentionally self-contained: it implements page actions, a scenario engine, Transformers.js WASM STT, Piper WASM TTS, and a text path that does not preload speech models until Prepare is clicked.
