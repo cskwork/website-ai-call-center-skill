@@ -31,10 +31,22 @@ export function bundleToFlow(bundle) {
     return { nodes: [], edges: [], viewport: { ...DEFAULT_VIEWPORT } };
   }
   return {
-    nodes: clone(nodes),
+    nodes: clone(nodes).map(hydrateNodeType),
     edges: Array.isArray(flow.edges) ? clone(flow.edges) : [],
     viewport: flow.viewport ? clone(flow.viewport) : { ...DEFAULT_VIEWPORT },
   };
+}
+
+/**
+ * React Flow and the inspector key off node.type, but the schema makes top-level
+ * `type` optional (the runtime reads node.data.type). Hydrate type from data.type
+ * on import so a data.type-only node renders with its custom component + fields.
+ * @param {object} node
+ * @returns {object}
+ */
+function hydrateNodeType(node) {
+  if (node.type === undefined && node.data?.type) return { ...node, type: node.data.type };
+  return node;
 }
 
 /**
