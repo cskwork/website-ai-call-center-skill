@@ -11,6 +11,9 @@ await copyDir(path.join(root, 'site'), outDir);
 await copyDir(path.join(root, 'dist'), path.join(outDir, 'dist'));
 await copyDir(path.join(root, 'examples'), path.join(outDir, 'examples'));
 await copyDir(path.join(root, 'docs'), path.join(outDir, 'docs'));
+// The no-code Flow Builder (admin/) is a separate Vite SPA built with base './'
+// so it works from the /admin/ subpath on a GitHub Pages project site.
+await copyDir(path.join(root, 'admin/dist'), path.join(outDir, 'admin'));
 await fs.writeFile(path.join(outDir, '.nojekyll'), '');
 
 await assertFile('index.html');
@@ -18,6 +21,7 @@ await assertFile('dist/website-ai-call-center.iife.js');
 await assertFile('dist/workers/stt-worker.js');
 await assertFile('dist/workers/tts-worker.js');
 await assertFile('examples/vanilla/index.html');
+await assertFile('admin/index.html');
 
 console.log('build-pages: ok');
 

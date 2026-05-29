@@ -200,3 +200,8 @@ PRD 목표 G3. P1에서 지연/이중언어/모델만 벤치(`bench-intent.mjs`)
 ## 검증 (메인 루프 독립 실행)
 - 루트 `npm test` **109/109**(이전 97 + 신규 12). `npm run validate` ok. `npm run build` ok(ESM/IIFE+workers).
 - `console.log`(src/) 0, 이모지 0, 제어문자 0, 파일 147줄(<800)·전 함수 소형. keyword 기본 경로 무회귀(transformers 미로드).
+
+## 후속 수정·배포 (같은 날)
+
+- **IIFE 번들 회귀 수정(커밋 aad86a3).** G3의 `import('@huggingface/transformers')`가 **단일 파일 IIFE 빌드에 인라인**돼(IIFE는 코드 분할 불가) 무다운로드 기본 번들이 30KB→**61MB**로 폭증, GitHub Pages에 그대로 배포될 뻔함. 기본 로더를 **CDN URL import(`@vite-ignore`)**로 전환 → 모든 포맷에서 transformers가 external 유지, opt-in 시에만 lazy 다운로드. iife 61MB→**31KB** 복귀(`loadExtractor`로 self-host override 가능). 검증: iife 31KB, esm 40KB, dist/_site에 transformers 청크 없음, npm test 109/109.
+- **GitHub Pages = 플로우 빌더 배포 + 온보딩 가이드.** `build-pages.mjs`가 `admin/dist`를 `_site/admin`으로 복사 + `admin/index.html` 단언, `site:build`에 `npm run build --prefix admin` 추가, CI(`pages.yml`)에 `npm ci --prefix admin` 단계 추가. admin은 이미 `base:'./'`라 `/admin/` 서브경로에서 동작. 랜딩(`site/index.html`)에 온보딩 3스텝 섹션(데모→노코드 플로우→배포) + nav "Flow builder"/"Get started" + hero "Open Flow Builder" 버튼, EN/KO i18n 키 양쪽 추가(`textContent` 적용이라 키 누락 시에도 안전). 검증: site:build ok(`_site/admin/index.html` 생성, 자산 상대경로), smoke:site ok(랜딩 무회귀), admin smoke ok, npm test 109/109.

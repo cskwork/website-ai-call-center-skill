@@ -181,6 +181,20 @@ export const LANDING_STRINGS = Object.freeze({
     'meta-phrase': 'Sample phrase',
     'meta-terms': 'Match terms',
     'meta-actions': 'Safe actions',
+    /* nav + hero: flow builder */
+    'nav-onboard': 'Get started',
+    'nav-flow-builder': 'Flow builder',
+    'btn-flow-builder': 'Open Flow Builder',
+    /* onboarding (3 steps) */
+    'aria-onboard': 'Get started in three steps',
+    'onboard-eyebrow': 'Get started in 3 steps',
+    'onboard-h2': 'From live demo to your own no-code flow in minutes.',
+    'onboard-step1-h3': 'Try the live demo',
+    'onboard-step1-p': 'Type or talk to the AI overlay running on this page. No setup, no API key.',
+    'onboard-step2-h3': 'Build a flow, no code',
+    'onboard-step2-p': 'Open the visual Flow Builder, drag nodes, and export a config bundle (JSON).',
+    'onboard-step3-h3': 'Ship it anywhere',
+    'onboard-step3-p': 'Drop the bundle and one script tag on any static host. Works on GitHub Pages.',
   }),
 
   ko: Object.freeze({
@@ -358,6 +372,20 @@ export const LANDING_STRINGS = Object.freeze({
     'meta-phrase': '예시 문구',
     'meta-terms': '매칭 키워드',
     'meta-actions': '허용 액션',
+    /* nav + hero: flow builder */
+    'nav-onboard': '시작하기',
+    'nav-flow-builder': '플로우 빌더',
+    'btn-flow-builder': '플로우 빌더 열기',
+    /* onboarding (3 steps) */
+    'aria-onboard': '3단계로 시작하기',
+    'onboard-eyebrow': '3단계로 시작',
+    'onboard-h2': '라이브 데모에서 나만의 노코드 플로우까지, 몇 분이면 됩니다.',
+    'onboard-step1-h3': '라이브 데모 체험',
+    'onboard-step1-p': '이 페이지에서 동작하는 AI 오버레이에 입력하거나 말해 보세요. 설정·API 키 불필요.',
+    'onboard-step2-h3': '노코드로 플로우 제작',
+    'onboard-step2-p': '비주얼 플로우 빌더에서 노드를 끌어다 놓고 config 번들(JSON)을 내보냅니다.',
+    'onboard-step3-h3': '어디서나 배포',
+    'onboard-step3-p': '번들과 script 태그 한 줄을 정적 호스트에 올리면 끝. GitHub Pages에서도 동작합니다.',
   }),
 });
 
