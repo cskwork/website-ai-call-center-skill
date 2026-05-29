@@ -10,6 +10,8 @@ assert.match(read('README.md'), /WASM STT/i);
 assert.match(read('README.md'), /GitHub Pages/i);
 assert.match(read('skills/website-ai-call-center/SKILL.md'), /^name: website-ai-call-center/m);
 assert.match(read('docs/privacy.md'), /What can leave the browser/);
+assert.match(read('docs/compliance.md'), /AI-use disclosure/);
+assert.match(read('docs/compliance.md'), /written-governance/i);
 assert.match(read('docs/browser-support.md'), /onnx-community\/distil-small\.en/);
 assert.match(read('README.md'), /createWorkerAssetUrls/);
 assert.match(read('README.md'), /Scenario management/);
