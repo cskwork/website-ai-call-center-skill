@@ -86,6 +86,9 @@ export function createFlowEngine({ bundle, intentResolver, locale = 'en', thresh
   }
 
   function runGraph({ accepted, score, scores, entities }) {
+    // After a terminal `end` node currentNodeId is null; re-enter at the start
+    // node so the next user turn begins a fresh traversal instead of going blank.
+    if (session.currentNodeId == null) session.currentNodeId = startNodeId(bundle.flow);
     const ctx = { slots: { ...session.slots }, intent: accepted, score, entities };
     const out = advance({ ctx, accepted });
     session.currentNodeId = out.nodeId;

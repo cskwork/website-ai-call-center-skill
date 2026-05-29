@@ -300,6 +300,17 @@ test('graph mode: slot-fill intent fallback is scoped to node.data.slot only', a
   assert.equal(res.slots.plan, null);
 });
 
+test('graph mode: a new turn after reaching end re-enters at start (not blank)', async () => {
+  const engine = createFlowEngine({ bundle: linearGraphBundle });
+  await engine.startSession();
+  const first = await engine.sendUserText('billing invoice problem');
+  assert.ok(first.text.includes('Here is your billing info.'), first.text);
+  // The first turn reached n-end; a later turn in the same session must re-route,
+  // not return a blank reply (regression for terminal-node session stall).
+  const second = await engine.sendUserText('billing invoice');
+  assert.ok(second.text.includes('Here is your billing info.'), `expected re-route, got: ${JSON.stringify(second.text)}`);
+});
+
 test('graph mode: happy path start->message->intent-branch->message', async () => {
   const engine = createFlowEngine({ bundle: linearGraphBundle });
   await engine.startSession();

@@ -4,6 +4,20 @@ import test from 'node:test';
 import { bundleToFlow, flowToBundle } from '../src/lib/flow-bundle.js';
 import { makeEmptyBundle } from '../src/lib/empty-bundle.js';
 
+test('bundleToFlow hydrates node.type from data.type for data.type-only nodes', () => {
+  const bundle = {
+    flow: {
+      nodes: [{ id: 'n1', position: { x: 0, y: 0 }, data: { type: 'message', text: 'hi' } }],
+      edges: [],
+      viewport: { x: 0, y: 0, zoom: 1 },
+    },
+  };
+  const flow = bundleToFlow(bundle);
+  // React Flow / inspector key off node.type; a schema-valid data.type-only node
+  // must still render as its kind and expose fields.
+  assert.equal(flow.nodes[0].type, 'message');
+});
+
 /** Hand-authored clean flow: node.type === node.data.type, viewport present. */
 function authoredFlow() {
   return {
