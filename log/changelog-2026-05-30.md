@@ -246,3 +246,15 @@ PRD 목표 G3. P1에서 지연/이중언어/모델만 벤치(`bench-intent.mjs`)
 - **LOW: LanguageToggle이 화살표키 패턴 없이 radio role 사용** → 거짓 계약. 수정: `role="group"` + `aria-pressed` 토글 버튼으로 변경(네이티브 버튼 키보드 동작과 일치).
 - **LOW: 빈 플로우 가드 문구 불일치**(가드는 nodes===0인데 문구는 "Start+Message+연결" 요구). 수정: 문구를 실제 가드에 맞춰 정정.
 - 확인 패스: Codex 재리뷰로 5건 전부 CLOSED + 신규 회귀 0 확인.
+
+## 라이브 배포 후 사용자 보고 → 시각 회귀 2건 수정 (검증 갭 보완)
+배포된 Pages에서 사용자가 "다크모드라 글자 안 보임 + Test flow 제대로 안 됨" 보고. 원인: 기존 e2e 스모크가
+**DOM/동작만 단언하고 실제 렌더링을 안 봐서** 놓침. force-dark 스크린샷으로 직접 재현·진단·수정 확인.
+- **다크모드 가독성.** `body`에 배경색이 없고 `color-scheme` 미선언 → OS/Chrome 자동 다크가 페이지를 어둡게 만들어
+  어두운 글자(#1f2933)가 안 보임. 수정: `index.html`에 `<meta name="color-scheme" content="light">`,
+  `:root { color-scheme: light }`, `body{background:#fff}`, `.canvas{background:#fff}` 추가 → 자동 다크 옵트아웃.
+  Chrome `--force-dark-mode` 강제 켠 상태에서도 밝게/가독 확인.
+- **Test flow 겹침.** 테스트 드로어(우측 fixed 340px)와 실제 어시스턴트 오버레이(우하단 fixed)가 충돌. 수정:
+  드로어를 **좌측**으로 이동(`left:0`, 그림자 방향 반전) → 오버레이가 우하단에서 가림 없이 보이고 클릭 가능.
+- **검증 갭 보완.** admin 스모크에 가독성 가드 추가: `documentElement.colorScheme`에 light 포함 + `body` 배경
+  `rgb(255,255,255)` 단언. force-dark 로컬 스크린샷으로 라이트/테스트 양 화면 육안 확인.

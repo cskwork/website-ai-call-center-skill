@@ -1,6 +1,12 @@
 /* Minimal three-pane layout (palette | canvas | inspector) + a top toolbar.
    No heavy theming (deferred to a later phase); just enough structure to use. */
 
+/* Force a light scheme so OS/browser auto-dark cannot darken the page and hide
+   the dark text. Every surface below also sets an explicit background. */
+:root {
+  color-scheme: light;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -16,6 +22,7 @@ body {
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   font-size: 14px;
   color: #1f2933;
+  background: #fff;
 }
 
 .app {
@@ -110,6 +117,7 @@ body {
 
 .canvas {
   min-width: 0;
+  background: #fff;
 }
 
 .field {
@@ -438,17 +446,19 @@ button.tip-trigger:focus-visible {
 
 /* --- Live test drawer --- */
 
+/* Anchored to the LEFT so the real assistant overlay (fixed, bottom-right) stays
+   fully visible and clickable while testing. */
 .test-panel {
   position: fixed;
   top: 0;
-  right: 0;
+  left: 0;
   bottom: 0;
   width: 340px;
   max-width: 90vw;
   z-index: 150;
   background: #fff;
-  border-left: 1px solid #d2d6dc;
-  box-shadow: -4px 0 16px rgba(0, 0, 0, 0.12);
+  border-right: 1px solid #d2d6dc;
+  box-shadow: 4px 0 16px rgba(0, 0, 0, 0.12);
   padding: 14px;
   overflow: auto;
   display: flex;

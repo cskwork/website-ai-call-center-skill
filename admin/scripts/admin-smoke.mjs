@@ -39,6 +39,14 @@ try {
   await page.waitForSelector('aside.palette button.palette-block');
   await page.waitForSelector('.react-flow');
 
+  // Readability guard: the page must declare a light scheme and paint an explicit
+  // white background, so OS/browser auto-dark cannot darken it and hide the dark
+  // text. Catches the regression where body had no background.
+  const scheme = await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme);
+  if (!/light/.test(scheme)) throw new Error(`expected color-scheme to include light, got "${scheme}"`);
+  const bodyBg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+  if (bodyBg !== 'rgb(255, 255, 255)') throw new Error(`expected a white body background, got ${bodyBg}`);
+
   // Canvas starts empty; adding a node from the palette renders exactly one node.
   // The first palette element is now a help tip, so target the block buttons.
   if ((await page.locator('.react-flow__node').count()) !== 0) {
