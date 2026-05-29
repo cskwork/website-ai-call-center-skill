@@ -63,6 +63,23 @@ try {
   if (exported.flow?.nodes?.length !== 1) {
     throw new Error('exported flow should contain the one added node');
   }
+
+  // Start-from-template: loading a prebuilt template fills the canvas with its
+  // multi-node working flow, and that flow still exports schema-valid.
+  await page.selectOption('.template-picker select', 'finance');
+  await page.waitForFunction(() => document.querySelectorAll('.react-flow__node').length > 1);
+  const [templateDownload] = await Promise.all([
+    page.waitForEvent('download'),
+    page.getByRole('button', { name: 'Export bundle' }).click(),
+  ]);
+  const templateBundle = JSON.parse(fs.readFileSync(await templateDownload.path(), 'utf8'));
+  if (!validateBundle(templateBundle)) {
+    throw new Error(`exported template failed schema validation: ${JSON.stringify(validateBundle.errors, null, 2)}`);
+  }
+  if ((templateBundle.flow?.nodes?.length ?? 0) <= 1) {
+    throw new Error('loaded template should export its multi-node flow');
+  }
+
   if (consoleErrors.length) throw new Error(`browser console errors:\n${consoleErrors.join('\n')}`);
   console.log('admin-smoke: ok');
 } finally {
