@@ -7,6 +7,7 @@ test('public exports include framework-agnostic call-center primitives', () => {
     'createWebsiteCallCenter',
     'createLocalRuleEngine',
     'createFlowEngine',
+    'evaluateCondition',
     'createKeywordIntentResolver',
     'createHttpEngineAdapter',
     'createSafeActionRegistry',
