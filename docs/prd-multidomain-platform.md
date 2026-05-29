@@ -199,7 +199,8 @@ Round 3에서 **해소** `[R3]`: 상시 서버 없이 엣지/서버리스로 가
 |---|---|---|
 | **P0. 스키마 v2** | `schemas/config-bundle.schema.json` + Ajv 검증 + 기존 시나리오 래핑 | `npm run validate` 통과, 기존 4개 시나리오 무손실 마이그레이션 |
 | **P1. 임베딩 의도분류** | `createEmbeddingIntentResolver` (opt-in) + 지연 벤치마크 스파이크 | 단위테스트(의도 정확도), 브라우저 CPU 지연 측정, keyword 폴백 유지 확인 |
-| **P2. 플로우 엔진** | `createFlowEngine` + slot 상태 + 안전 조건 평가기 + 노드 타입 | `node --test`, 기존 어댑터 계약 호환, smoke:browser |
+| **P2a. 번들 엔진** ✅ | `createFlowEngine` + pluggable IntentResolver(keyword) + slot 상태 + 첫 턴 AI 고지 + handoff 신호 | `node --test`(11), 어댑터 계약 호환, build ok |
+| **P2b. 그래프 실행(deferred)** | 노드 그래프 실행 + 안전 조건 평가기 + slot `from_entity` | P3 authoring과 결합(실행할 플로우가 생긴 뒤) |
 | **P3. 노코드 어드민** | `admin/` React Flow SPA + 폼 + Ajv 검증 + export | export JSON이 P0 스키마 통과, 라운드트립 저장/복원 |
 | **P4. 산업 템플릿** | finance/education/insurance/support 번들 | 각 템플릿이 스키마 통과 + smoke 시나리오 |
 | **P5. 컴플라이언스** | disclosure 노드 + governance 블록 + privacy 문서 | 고지 노드 첫 상호작용 렌더 테스트, 문서 리뷰 |

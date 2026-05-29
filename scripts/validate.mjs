@@ -64,6 +64,8 @@ function requiredFiles() {
   return [
     'src/index.js',
     'src/core/create-call-center.js',
+    'src/engine/flow-engine.js',
+    'src/intent/keyword-resolver.js',
     'src/stt/wasm-stt-adapter.js',
     'src/tts/piper-tts-adapter.js',
     'examples/vanilla/index.html',
