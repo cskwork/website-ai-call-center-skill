@@ -1,0 +1,169 @@
+/* Minimal three-pane layout (palette | canvas | inspector) + a top toolbar.
+   No heavy theming (deferred to a later phase); just enough structure to use. */
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  color: #1f2933;
+}
+
+.app {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  height: 100%;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 8px 12px;
+  border-bottom: 1px solid #d2d6dc;
+  background: #f7f8fa;
+}
+
+.toolbar button,
+.palette button {
+  cursor: pointer;
+  padding: 6px 10px;
+  border: 1px solid #cbd2d9;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.toolbar button:hover,
+.palette button:hover {
+  background: #eef1f5;
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: 180px 1fr 300px;
+  min-height: 0;
+}
+
+.palette {
+  padding: 10px;
+  overflow: auto;
+  border-right: 1px solid #d2d6dc;
+}
+
+.inspector-column {
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  border-left: 1px solid #d2d6dc;
+}
+
+.inspector,
+.metadata {
+  padding: 10px;
+}
+
+.inspector {
+  border-bottom: 1px solid #e4e7eb;
+}
+
+.palette h2,
+.inspector h2 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #52606d;
+}
+
+.palette button {
+  display: block;
+  width: 100%;
+  margin-bottom: 6px;
+  text-align: left;
+}
+
+.canvas {
+  min-width: 0;
+}
+
+.field {
+  margin-bottom: 10px;
+}
+
+.field label {
+  display: block;
+  margin-bottom: 3px;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+  padding: 5px 6px;
+  border: 1px solid #cbd2d9;
+  border-radius: 4px;
+  font: inherit;
+}
+
+.field textarea {
+  min-height: 56px;
+  resize: vertical;
+}
+
+.banner {
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.banner-ok {
+  background: #e3f9e5;
+  color: #207b3a;
+}
+
+.banner-error {
+  background: #ffeef0;
+  color: #b91c2e;
+}
+
+.error-list {
+  margin: 4px 0 0;
+  padding-left: 18px;
+}
+
+.flow-node {
+  min-width: 130px;
+  padding: 8px 10px;
+  border: 1px solid #9aa5b1;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 12px;
+}
+
+.flow-node .kind {
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.flow-node .summary {
+  color: #52606d;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.hint {
+  color: #7b8794;
+  font-size: 12px;
+}
