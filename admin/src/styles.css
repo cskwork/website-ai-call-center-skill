@@ -123,6 +123,17 @@ body {
   font-size: 12px;
 }
 
+/* Label + help tooltip on one row (tooltip is a sibling, never inside <label>). */
+.field-head {
+  display: flex;
+  align-items: center;
+  margin-bottom: 3px;
+}
+
+.field-head label {
+  margin-bottom: 0;
+}
+
 .field input,
 .field select,
 .field textarea {
@@ -182,4 +193,301 @@ body {
 .hint {
   color: #7b8794;
   font-size: 12px;
+}
+
+/* --- Toolbar additions: primary action, action+tip grouping, language toggle --- */
+
+.brand {
+  font-size: 14px;
+}
+
+.toolbar-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.toolbar button.btn-primary {
+  background: #2563eb;
+  color: #fff;
+  border-color: #2563eb;
+}
+
+.toolbar button.btn-primary:hover {
+  background: #1d4ed8;
+}
+
+.lang-toggle {
+  display: inline-flex;
+  border: 1px solid #cbd2d9;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.lang-option {
+  padding: 5px 9px;
+  border: 0;
+  background: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  color: #3b424c;
+}
+
+.lang-option + .lang-option {
+  border-left: 1px solid #cbd2d9;
+}
+
+.lang-option.active {
+  background: #2563eb;
+  color: #fff;
+}
+
+/* --- Tooltip: a small "?" trigger with a dark bubble --- */
+
+.tip {
+  position: relative;
+  display: inline-flex;
+  vertical-align: middle;
+}
+
+button.tip-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  margin-left: 5px;
+  border-radius: 50%;
+  border: 1px solid #b6c0cc;
+  background: #eef1f5;
+  color: #52606d;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: help;
+}
+
+button.tip-trigger:hover,
+button.tip-trigger:focus-visible {
+  background: #dbe2ea;
+}
+
+.tip-bubble {
+  position: absolute;
+  z-index: 200;
+  top: calc(100% + 6px);
+  left: 0;
+  width: max-content;
+  max-width: 240px;
+  padding: 7px 9px;
+  border-radius: 6px;
+  background: #1f2933;
+  color: #f5f7fa;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.45;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+  white-space: normal;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+/* --- Palette: color-coded blocks + per-block tip --- */
+
+.palette-title {
+  display: flex;
+  align-items: center;
+}
+
+.palette-blocks {
+  margin: 8px 0;
+}
+
+.palette-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-bottom: 6px;
+}
+
+.palette button.palette-block {
+  flex: 1;
+  width: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 0;
+}
+
+.block-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex: 0 0 auto;
+}
+
+/* --- Help panel (collapsible "How it works" + block legend) --- */
+
+.help-panel {
+  margin-top: 12px;
+  border-top: 1px solid #e4e7eb;
+  padding-top: 10px;
+}
+
+.palette button.help-toggle {
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  font-size: 12px;
+  color: #2563eb;
+}
+
+.palette button.help-toggle:hover {
+  background: none;
+  text-decoration: underline;
+}
+
+.help-body {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #3b424c;
+}
+
+.help-intro {
+  margin: 0 0 8px;
+}
+
+.help-steps {
+  margin: 0 0 10px;
+  padding-left: 16px;
+}
+
+.help-steps li {
+  margin-bottom: 6px;
+}
+
+.help-steps strong {
+  display: block;
+}
+
+.help-steps span {
+  color: #52606d;
+}
+
+.help-legend-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #52606d;
+  margin: 8px 0 6px;
+}
+
+.help-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.help-legend li {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.legend-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+.legend-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.legend-text strong {
+  font-size: 12px;
+}
+
+.legend-text span {
+  color: #52606d;
+  font-size: 11px;
+}
+
+/* --- Inspector block description --- */
+
+.inspector-desc {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+/* --- Canvas node color accent --- */
+
+.flow-node {
+  border-left-width: 4px;
+}
+
+/* --- Live test drawer --- */
+
+.test-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 340px;
+  max-width: 90vw;
+  z-index: 150;
+  background: #fff;
+  border-left: 1px solid #d2d6dc;
+  box-shadow: -4px 0 16px rgba(0, 0, 0, 0.12);
+  padding: 14px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.test-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.test-panel button {
+  cursor: pointer;
+  padding: 6px 10px;
+  border: 1px solid #cbd2d9;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.test-panel button:hover {
+  background: #eef1f5;
+}
+
+.test-voice {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.test-voice-hint {
+  margin-top: 0;
+}
+
+.test-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
