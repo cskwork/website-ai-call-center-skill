@@ -62,3 +62,46 @@ PRD 로드맵 P3. 비개발자가 React Flow 캔버스 + 폼으로 대화 흐름
 
 P4(산업 템플릿 팩) 또는 P3.1(어드민 폴리시: ko fallback, 텍스트 절단, Playwright 스모크). 어드민 export가 P2b 엔진을
 구동함이 테스트로 증명됨 → 빌더↔런타임 계약 확립.
+
+---
+
+# P4 — 산업 템플릿 팩 (finance/education/insurance) + 엔진 스모크
+
+PRD 로드맵 P4. 비개발자가 즉시 시작할 수 있는 도메인별 프리빌트 config-bundle(v2) 3종 추가. 각 번들은 P2b
+`createFlowEngine`이 그대로 실행하고, P3 어드민이 불러올 수 있는 시작점. support(기존)까지 4개 도메인.
+
+워크플로우(설계 → 도메인 3개 **병렬 작성**(독립 파일) → 통합 테스트/와이어링 → 적대적 검증 3 병렬 → 수정).
+
+## 산출물
+- `bundles/{finance,education,insurance}.bundle.json` — 각 4 의도/시나리오, EN+KO 이중언어, disclosure+governance,
+  비어있지 않은 flow(start → ai-disclosure → intent-branch → message/action → handoff → end), condition-object 엣지 1개.
+- `tests/templates.test.mjs` — bundles/*.bundle.json 전수 Ajv 검증 + intent↔scenario 와이어링 + 도메인별 엔진 스모크
+  (의도 라우팅/고지 1회/escalation handoff/gibberish→clarification) + **EN+KO 발화 parity 전수 검사**.
+- `scripts/validate.mjs` requiredFiles()에 3개 번들 경로 추가.
+
+## 결정과 근거
+- **병렬 작성이 자연스러운 fan-out.** 3 도메인 번들은 독립 파일 → 에이전트별 1파일 작성(충돌 0). 통합/테스트만 단일 writer.
+- **콘텐츠는 예시 스캐폴드, 법적 조언 아님.** governance.notes에 "Replace all copy... before production" 명시, tenant.name에
+  "(Template)". 날조된 규제/가격/계좌/컴플라이언스 주장·PII 없음. 고지는 EN+KO로 AI 사용 명시(PRD §7 기조).
+- **gold reference(support 번들) 형태 그대로 미러링** + 양 스키마 준수. 키워드 분류는 `union(EN, KO)` keywords로 동작하므로
+  스모크/parity 테스트가 결정론적.
+
+## 적대적 검증이 잡은 결함 → 수정 (medium 3)
+- **교육 번들의 광고 발화 2개가 자기 의도로 분류 실패** (`When are my lectures`, `I need to speak with a person`가
+  자기 keywords와 토큰 불일치 → null). 키워드 보강(lecture/person/speak).
+- **EN+KO 발화 parity 갭** (finance KO `오늘 영업하나요`가 keyword `영업점`의 substring 아님 → null). `영업` stem 추가.
+  → `tests/templates.test.mjs`에 **모든 광고 발화가 자기 의도로 분류됨**을 전수 단언하는 parity 테스트로 고정.
+- **dead default-edge → 미매칭 입력이 clarification 없이 핸드오프로 직행.** intent-branch에 `data.fallback`을 뒀지만
+  no-data 기본 엣지가 n-handoff로 가서 fallback이 unreachable + off-topic 입력이 사람에게 직행(인력 낭비). 3 번들 모두
+  기본 엣지 제거 → 미매칭 시 `pickEdge`가 null 반환 → branchStep이 fallback 발화 후 대기(self-serve UX). 회귀 테스트 추가.
+
+## 의도적 한계 (low, 기록)
+- 템플릿은 8 노드종류 중 7개 사용(slot-fill 미사용). `topic` slot의 from_intent 매핑은 graph 모드에서 slot-fill 노드 없이는
+  안 채워짐 → 현재는 스키마 형태 예시(inert). 필요 시 slot-fill 노드 추가가 후속.
+
+## 검증 (메인 루프 독립 실행)
+- 루트 `node --test tests/*.test.mjs` **93/93** (81 + 신규 12).
+- `npm run validate` ok — **build-bundle --check 그린**(support.bundle.json·SDK src/·schemas/·build-bundle.mjs 불변 = P0/P2b 무회귀).
+- admin `npm test --prefix admin` **24/24** 무회귀.
+- 정리 필요: 작성 검증용 throwaway `tmp-kw.mjs`/`tmp-verify-insurance.mjs`가 루트에 남음(샌드박스 rm 차단). untracked·미참조라
+  커밋에서 선택적 staging으로 제외. 수동 삭제 권장.

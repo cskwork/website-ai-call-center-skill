@@ -1,0 +1,541 @@
+{
+  "schemaVersion": "2",
+  "tenant": {
+    "id": "acme-academy",
+    "name": "Acme Academy (Template)",
+    "locales": [
+      "en",
+      "ko"
+    ]
+  },
+  "domain": "education",
+  "governance": {
+    "owner": "owner@example.com",
+    "modelVersions": {
+      "intent": "keyword",
+      "llm": null
+    },
+    "lastReviewed": "2026-05-30",
+    "notes": "Illustrative template scaffolding. Replace all copy and review with your own compliance, legal, and security teams before production use."
+  },
+  "disclosure": {
+    "required": true,
+    "showOn": "first-interaction",
+    "text": {
+      "en": "You are chatting with an AI assistant, not a school staff member. For account-specific help you may be connected to an advisor.",
+      "ko": "학교 직원이 아니라 AI 도우미와 대화하고 있습니다. 개인 정보가 필요한 도움은 상담원에게 연결될 수 있습니다."
+    }
+  },
+  "intentModel": {
+    "resolver": "keyword",
+    "threshold": 0,
+    "model": null
+  },
+  "slots": {
+    "topic": {
+      "type": "categorical",
+      "initial_value": null,
+      "values": [
+        "enroll",
+        "schedule",
+        "tuition",
+        "advisor"
+      ],
+      "mappings": [
+        {
+          "type": "from_intent",
+          "intent": "enrollment_help",
+          "value": "enroll"
+        },
+        {
+          "type": "from_intent",
+          "intent": "course_schedule",
+          "value": "schedule"
+        }
+      ]
+    }
+  },
+  "intents": [
+    {
+      "id": "enrollment_help",
+      "utterances": [
+        "How do I enroll in a course",
+        "I want to register for a class",
+        "Help me sign up for a course"
+      ],
+      "scenario": "enroll"
+    },
+    {
+      "id": "course_schedule",
+      "utterances": [
+        "What is my class schedule",
+        "Show me the timetable",
+        "When are my lectures"
+      ],
+      "scenario": "schedule"
+    },
+    {
+      "id": "tuition_fees",
+      "utterances": [
+        "How do I pay tuition",
+        "Where do I see the fees",
+        "What is the cost of the program"
+      ],
+      "scenario": "tuition"
+    },
+    {
+      "id": "talk_to_advisor",
+      "utterances": [
+        "I want to talk to an advisor",
+        "Connect me to a counselor",
+        "I need to speak with a person"
+      ],
+      "scenario": "advisor"
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "enroll",
+      "catalog_order": 10,
+      "scenario_intent": "enrollment_help",
+      "title": "Enroll in a course",
+      "button_label": "Help me enroll",
+      "summary": "Explains where to start course enrollment and registration after signing in.",
+      "utterances": [
+        "How do I enroll in a course",
+        "I want to register for a class",
+        "Help me sign up for a course"
+      ],
+      "match": {
+        "keywords": [
+          "enroll",
+          "register",
+          "signup",
+          "course"
+        ]
+      },
+      "reply": {
+        "text": "I can point you to the enrollment page where you can register for a course once you sign in. I do not submit registrations myself."
+      },
+      "frontend_actions": [
+        {
+          "id": "show-enrollment",
+          "label": "Open enrollment page"
+        }
+      ],
+      "workflow": {
+        "issue_type": "enrollment_help",
+        "handoff": false
+      },
+      "i18n": {
+        "ko": {
+          "title": "수강신청",
+          "button_label": "수강신청 도움받기",
+          "summary": "로그인 후 수강신청과 등록을 시작하는 위치를 안내합니다.",
+          "utterances": [
+            "강좌 수강신청은 어떻게 하나요",
+            "수업을 등록하고 싶어요",
+            "강좌 신청을 도와주세요"
+          ],
+          "reply": {
+            "text": "로그인하시면 강좌를 등록할 수 있는 수강신청 페이지로 안내해 드릴게요. 저는 직접 신청을 처리하지 않습니다."
+          },
+          "frontend_actions": [
+            {
+              "id": "show-enrollment",
+              "label": "수강신청 페이지 열기"
+            }
+          ],
+          "match": {
+            "keywords": [
+              "수강신청",
+              "등록",
+              "신청",
+              "강좌"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "schedule",
+      "catalog_order": 20,
+      "scenario_intent": "course_schedule",
+      "title": "Course schedule",
+      "button_label": "See my schedule",
+      "summary": "Points to where the class timetable and lecture times are listed.",
+      "utterances": [
+        "What is my class schedule",
+        "Show me the timetable",
+        "When are my lectures"
+      ],
+      "match": {
+        "keywords": [
+          "schedule",
+          "timetable",
+          "class",
+          "time",
+          "lecture"
+        ]
+      },
+      "reply": {
+        "text": "I can point you to the timetable page where your class schedule and lecture times are listed."
+      },
+      "frontend_actions": [
+        {
+          "id": "show-schedule",
+          "label": "Open timetable"
+        }
+      ],
+      "workflow": {
+        "issue_type": "general_info",
+        "handoff": false
+      },
+      "i18n": {
+        "ko": {
+          "title": "수업 시간표",
+          "button_label": "시간표 보기",
+          "summary": "수업 시간표와 강의 시간이 안내된 곳으로 연결합니다.",
+          "utterances": [
+            "제 수업 시간표가 어떻게 되나요",
+            "시간표를 보여 주세요",
+            "강의가 언제 있나요"
+          ],
+          "reply": {
+            "text": "수업 시간표와 강의 시간이 안내된 시간표 페이지로 연결해 드릴게요."
+          },
+          "frontend_actions": [
+            {
+              "id": "show-schedule",
+              "label": "시간표 열기"
+            }
+          ],
+          "match": {
+            "keywords": [
+              "시간표",
+              "수업",
+              "강의",
+              "일정"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "tuition",
+      "catalog_order": 30,
+      "scenario_intent": "tuition_fees",
+      "title": "Tuition and fees",
+      "button_label": "See tuition and fees",
+      "summary": "Points to where tuition and fee details and payment options are listed.",
+      "utterances": [
+        "How do I pay tuition",
+        "Where do I see the fees",
+        "What is the cost of the program"
+      ],
+      "match": {
+        "keywords": [
+          "tuition",
+          "fee",
+          "payment",
+          "cost"
+        ]
+      },
+      "reply": {
+        "text": "I can point you to the tuition and fees page where the current amounts and payment options are listed. I do not quote amounts myself."
+      },
+      "frontend_actions": [
+        {
+          "id": "show-tuition",
+          "label": "Open tuition page"
+        }
+      ],
+      "workflow": {
+        "issue_type": "billing_info",
+        "handoff": false
+      },
+      "i18n": {
+        "ko": {
+          "title": "등록금 및 비용",
+          "button_label": "등록금 보기",
+          "summary": "등록금과 비용 안내, 납부 방법이 안내된 곳으로 연결합니다.",
+          "utterances": [
+            "등록금은 어떻게 납부하나요",
+            "비용은 어디에서 볼 수 있나요",
+            "프로그램 비용이 얼마인가요"
+          ],
+          "reply": {
+            "text": "현재 금액과 납부 방법이 안내된 등록금 안내 페이지로 연결해 드릴게요. 저는 금액을 직접 안내하지 않습니다."
+          },
+          "frontend_actions": [
+            {
+              "id": "show-tuition",
+              "label": "등록금 페이지 열기"
+            }
+          ],
+          "match": {
+            "keywords": [
+              "등록금",
+              "수업료",
+              "납부",
+              "비용"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "advisor",
+      "catalog_order": 40,
+      "scenario_intent": "talk_to_advisor",
+      "title": "Talk to an advisor",
+      "button_label": "Talk to an advisor",
+      "summary": "Hands the conversation off to a human academic advisor.",
+      "utterances": [
+        "I want to talk to an advisor",
+        "Connect me to a counselor",
+        "I need to speak with a person"
+      ],
+      "match": {
+        "keywords": [
+          "advisor",
+          "counselor",
+          "human",
+          "agent",
+          "help",
+          "person",
+          "speak"
+        ]
+      },
+      "reply": {
+        "text": "I will connect you with an academic advisor who can help further."
+      },
+      "frontend_actions": [
+        {
+          "id": "request-handoff",
+          "label": "Connect to an advisor"
+        }
+      ],
+      "workflow": {
+        "issue_type": "escalation",
+        "handoff": true
+      },
+      "i18n": {
+        "ko": {
+          "title": "상담원 연결",
+          "button_label": "상담원 연결",
+          "summary": "대화를 학사 상담원에게 인계합니다.",
+          "utterances": [
+            "상담원과 이야기하고 싶어요",
+            "담당자에게 연결해 주세요",
+            "사람과 이야기하고 싶어요"
+          ],
+          "reply": {
+            "text": "더 도와드릴 수 있는 학사 상담원에게 연결해 드릴게요."
+          },
+          "frontend_actions": [
+            {
+              "id": "request-handoff",
+              "label": "상담원에게 연결"
+            }
+          ],
+          "match": {
+            "keywords": [
+              "상담원",
+              "사람",
+              "담당자",
+              "연결"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "flow": {
+    "nodes": [
+      {
+        "id": "n-start",
+        "type": "start",
+        "position": {
+          "x": 0,
+          "y": 0
+        },
+        "data": {
+          "type": "start"
+        }
+      },
+      {
+        "id": "n-disclosure",
+        "type": "ai-disclosure",
+        "position": {
+          "x": 160,
+          "y": 0
+        },
+        "data": {
+          "type": "ai-disclosure"
+        }
+      },
+      {
+        "id": "n-branch",
+        "type": "intent-branch",
+        "position": {
+          "x": 320,
+          "y": 0
+        },
+        "data": {
+          "type": "intent-branch",
+          "fallback": {
+            "en": "I can help with enrollment, your course schedule, or tuition and fees. Which one?",
+            "ko": "수강신청, 수업 시간표, 등록금 중에서 무엇을 도와드릴까요?"
+          }
+        }
+      },
+      {
+        "id": "n-enroll",
+        "type": "message",
+        "position": {
+          "x": 480,
+          "y": -120
+        },
+        "data": {
+          "type": "message",
+          "text": "I can point you to the enrollment page where you can register for a course once you sign in.",
+          "i18n": {
+            "ko": {
+              "text": "로그인하시면 강좌를 등록할 수 있는 수강신청 페이지로 안내해 드릴게요."
+            }
+          }
+        }
+      },
+      {
+        "id": "n-schedule",
+        "type": "message",
+        "position": {
+          "x": 480,
+          "y": -40
+        },
+        "data": {
+          "type": "message",
+          "text": "I can point you to the timetable page with your class schedule and lecture times.",
+          "i18n": {
+            "ko": {
+              "text": "수업 시간표와 강의 시간이 안내된 시간표 페이지로 연결해 드릴게요."
+            }
+          }
+        }
+      },
+      {
+        "id": "n-tuition",
+        "type": "action",
+        "position": {
+          "x": 480,
+          "y": 40
+        },
+        "data": {
+          "type": "action",
+          "actionId": "show-tuition",
+          "label": "Open tuition page"
+        }
+      },
+      {
+        "id": "n-handoff",
+        "type": "handoff",
+        "position": {
+          "x": 480,
+          "y": 120
+        },
+        "data": {
+          "type": "handoff",
+          "text": "Connecting you to an academic advisor who can help.",
+          "i18n": {
+            "ko": {
+              "text": "도와드릴 수 있는 학사 상담원에게 연결해 드릴게요."
+            }
+          }
+        }
+      },
+      {
+        "id": "n-end",
+        "type": "end",
+        "position": {
+          "x": 640,
+          "y": 0
+        },
+        "data": {
+          "type": "end"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-start-disclosure",
+        "source": "n-start",
+        "target": "n-disclosure"
+      },
+      {
+        "id": "e-disclosure-branch",
+        "source": "n-disclosure",
+        "target": "n-branch"
+      },
+      {
+        "id": "e-branch-enroll",
+        "source": "n-branch",
+        "target": "n-enroll",
+        "data": {
+          "condition": {
+            "==": [
+              {
+                "var": "intent"
+              },
+              "enrollment_help"
+            ]
+          }
+        }
+      },
+      {
+        "id": "e-branch-schedule",
+        "source": "n-branch",
+        "target": "n-schedule",
+        "data": {
+          "intent": "course_schedule"
+        }
+      },
+      {
+        "id": "e-branch-tuition",
+        "source": "n-branch",
+        "target": "n-tuition",
+        "data": {
+          "intent": "tuition_fees"
+        }
+      },
+      {
+        "id": "e-branch-advisor",
+        "source": "n-branch",
+        "target": "n-handoff",
+        "data": {
+          "intent": "talk_to_advisor"
+        }
+      },
+      {
+        "id": "e-enroll-end",
+        "source": "n-enroll",
+        "target": "n-end"
+      },
+      {
+        "id": "e-schedule-end",
+        "source": "n-schedule",
+        "target": "n-end"
+      },
+      {
+        "id": "e-tuition-end",
+        "source": "n-tuition",
+        "target": "n-end"
+      }
+    ],
+    "viewport": {
+      "x": 0,
+      "y": 0,
+      "zoom": 1
+    }
+  }
+}

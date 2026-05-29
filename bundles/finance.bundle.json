@@ -1,0 +1,540 @@
+{
+  "schemaVersion": "2",
+  "tenant": {
+    "id": "acme-bank",
+    "name": "Acme Bank (Template)",
+    "locales": [
+      "en",
+      "ko"
+    ]
+  },
+  "domain": "finance",
+  "governance": {
+    "owner": "owner@example.com",
+    "modelVersions": {
+      "intent": "keyword",
+      "llm": null
+    },
+    "lastReviewed": "2026-05-30",
+    "notes": "Illustrative template scaffolding. Replace all copy and review with your own compliance, legal, and security teams before production use."
+  },
+  "disclosure": {
+    "required": true,
+    "showOn": "first-interaction",
+    "text": {
+      "en": "You are chatting with an AI assistant, not a human banker. For account-specific actions you may be connected to a person.",
+      "ko": "사람 은행원이 아니라 AI 도우미와 대화하고 있습니다. 계좌별 처리는 상담원에게 연결될 수 있습니다."
+    }
+  },
+  "intentModel": {
+    "resolver": "keyword",
+    "threshold": 0,
+    "model": null
+  },
+  "slots": {
+    "topic": {
+      "type": "categorical",
+      "initial_value": null,
+      "values": [
+        "balance",
+        "card_lock",
+        "branch_hours",
+        "human"
+      ],
+      "mappings": [
+        {
+          "type": "from_intent",
+          "intent": "balance_inquiry",
+          "value": "balance"
+        },
+        {
+          "type": "from_intent",
+          "intent": "card_lock",
+          "value": "card_lock"
+        }
+      ]
+    }
+  },
+  "intents": [
+    {
+      "id": "balance_inquiry",
+      "utterances": [
+        "What is my account balance",
+        "Show my balance",
+        "How much money do I have"
+      ],
+      "scenario": "balance"
+    },
+    {
+      "id": "card_lock",
+      "utterances": [
+        "Lock my lost card",
+        "Freeze my card",
+        "My card was stolen"
+      ],
+      "scenario": "card"
+    },
+    {
+      "id": "branch_hours",
+      "utterances": [
+        "When does the branch open",
+        "What are your branch hours",
+        "Are you open today"
+      ],
+      "scenario": "branch"
+    },
+    {
+      "id": "talk_to_human",
+      "utterances": [
+        "I want to talk to a person",
+        "Connect me to an agent",
+        "Escalate to a human"
+      ],
+      "scenario": "human"
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "balance",
+      "catalog_order": 10,
+      "scenario_intent": "balance_inquiry",
+      "title": "Check balance",
+      "button_label": "Check my balance",
+      "summary": "Explains how to view an account balance after signing in.",
+      "utterances": [
+        "What is my account balance",
+        "Show my balance",
+        "How much money do I have"
+      ],
+      "match": {
+        "keywords": [
+          "balance",
+          "account",
+          "money",
+          "funds"
+        ]
+      },
+      "reply": {
+        "text": "I can show you where your balance appears once you sign in. I do not read account data myself."
+      },
+      "frontend_actions": [
+        {
+          "id": "show-balance",
+          "label": "Show balance page"
+        }
+      ],
+      "workflow": {
+        "issue_type": "account_inquiry",
+        "handoff": false
+      },
+      "i18n": {
+        "ko": {
+          "title": "잔액 조회",
+          "button_label": "잔액 확인",
+          "summary": "로그인 후 계좌 잔액을 확인하는 방법을 안내합니다.",
+          "utterances": [
+            "계좌 잔액이 얼마인가요",
+            "잔액을 보여 주세요",
+            "제 잔액이 궁금해요"
+          ],
+          "reply": {
+            "text": "로그인하시면 잔액이 표시되는 위치를 안내해 드릴게요. 저는 계좌 정보를 직접 조회하지 않습니다."
+          },
+          "frontend_actions": [
+            {
+              "id": "show-balance",
+              "label": "잔액 페이지 보기"
+            }
+          ],
+          "match": {
+            "keywords": [
+              "잔액",
+              "계좌",
+              "잔고",
+              "예금"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "card",
+      "catalog_order": 20,
+      "scenario_intent": "card_lock",
+      "title": "Lock card",
+      "button_label": "Lock my card",
+      "summary": "Guides locking a lost or stolen card and connects you to a person.",
+      "utterances": [
+        "Lock my lost card",
+        "Freeze my card",
+        "My card was stolen"
+      ],
+      "match": {
+        "keywords": [
+          "card",
+          "lock",
+          "freeze",
+          "stolen",
+          "lost"
+        ]
+      },
+      "reply": {
+        "text": "I can help you start a card lock and connect you to a banker to confirm it securely."
+      },
+      "frontend_actions": [
+        {
+          "id": "start-card-lock",
+          "label": "Start card lock"
+        }
+      ],
+      "workflow": {
+        "issue_type": "card_security",
+        "handoff": true
+      },
+      "i18n": {
+        "ko": {
+          "title": "카드 정지",
+          "button_label": "카드 정지하기",
+          "summary": "분실 또는 도난 카드를 정지하고 상담원에게 연결하도록 안내합니다.",
+          "utterances": [
+            "분실한 카드를 정지해 주세요",
+            "카드를 정지하고 싶어요",
+            "카드를 도난당했어요"
+          ],
+          "reply": {
+            "text": "카드 정지를 시작하도록 도와드리고, 안전하게 확인할 수 있도록 상담원에게 연결해 드릴게요."
+          },
+          "frontend_actions": [
+            {
+              "id": "start-card-lock",
+              "label": "카드 정지 시작"
+            }
+          ],
+          "match": {
+            "keywords": [
+              "카드",
+              "정지",
+              "분실",
+              "도난"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "branch",
+      "catalog_order": 30,
+      "scenario_intent": "branch_hours",
+      "title": "Branch hours",
+      "button_label": "See branch hours",
+      "summary": "Points to where branch locations and opening hours are listed.",
+      "utterances": [
+        "When does the branch open",
+        "What are your branch hours",
+        "Are you open today"
+      ],
+      "match": {
+        "keywords": [
+          "branch",
+          "hours",
+          "open",
+          "location"
+        ]
+      },
+      "reply": {
+        "text": "I can point you to the branch locator where opening hours for each location are listed."
+      },
+      "frontend_actions": [
+        {
+          "id": "show-branch-locator",
+          "label": "Open branch locator"
+        }
+      ],
+      "workflow": {
+        "issue_type": "general_info",
+        "handoff": false
+      },
+      "i18n": {
+        "ko": {
+          "title": "영업점 운영 시간",
+          "button_label": "영업점 시간 보기",
+          "summary": "영업점 위치와 운영 시간이 안내된 곳으로 연결합니다.",
+          "utterances": [
+            "영업점은 언제 문을 여나요",
+            "영업 시간이 어떻게 되나요",
+            "오늘 영업하나요"
+          ],
+          "reply": {
+            "text": "각 지점의 운영 시간이 안내된 영업점 찾기 페이지로 연결해 드릴게요."
+          },
+          "frontend_actions": [
+            {
+              "id": "show-branch-locator",
+              "label": "영업점 찾기 열기"
+            }
+          ],
+          "match": {
+            "keywords": [
+              "영업점",
+              "지점",
+              "시간",
+              "운영",
+              "영업"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "human",
+      "catalog_order": 40,
+      "scenario_intent": "talk_to_human",
+      "title": "Talk to a person",
+      "button_label": "Talk to a person",
+      "summary": "Hands the conversation off to a human banker.",
+      "utterances": [
+        "I want to talk to a person",
+        "Connect me to an agent",
+        "Escalate to a human"
+      ],
+      "match": {
+        "keywords": [
+          "human",
+          "agent",
+          "person",
+          "representative",
+          "escalate"
+        ]
+      },
+      "reply": {
+        "text": "I will connect you with a person who can help further."
+      },
+      "frontend_actions": [
+        {
+          "id": "request-handoff",
+          "label": "Connect to a banker"
+        }
+      ],
+      "workflow": {
+        "issue_type": "escalation",
+        "handoff": true
+      },
+      "i18n": {
+        "ko": {
+          "title": "상담원 연결",
+          "button_label": "상담원 연결",
+          "summary": "대화를 사람 상담원에게 인계합니다.",
+          "utterances": [
+            "사람과 이야기하고 싶어요",
+            "상담원에게 연결해 주세요",
+            "사람에게 연결해 주세요"
+          ],
+          "reply": {
+            "text": "더 도와드릴 수 있는 상담원에게 연결해 드릴게요."
+          },
+          "frontend_actions": [
+            {
+              "id": "request-handoff",
+              "label": "상담원에게 연결"
+            }
+          ],
+          "match": {
+            "keywords": [
+              "상담원",
+              "사람",
+              "직원",
+              "연결"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "flow": {
+    "nodes": [
+      {
+        "id": "n-start",
+        "type": "start",
+        "position": {
+          "x": 0,
+          "y": 0
+        },
+        "data": {
+          "type": "start"
+        }
+      },
+      {
+        "id": "n-disclosure",
+        "type": "ai-disclosure",
+        "position": {
+          "x": 160,
+          "y": 0
+        },
+        "data": {
+          "type": "ai-disclosure"
+        }
+      },
+      {
+        "id": "n-branch",
+        "type": "intent-branch",
+        "position": {
+          "x": 320,
+          "y": 0
+        },
+        "data": {
+          "type": "intent-branch",
+          "fallback": {
+            "en": "I can help with balance, card lock, or branch hours. Which one?",
+            "ko": "잔액 조회, 카드 정지, 영업점 시간 중에서 무엇을 도와드릴까요?"
+          }
+        }
+      },
+      {
+        "id": "n-balance",
+        "type": "message",
+        "position": {
+          "x": 480,
+          "y": -120
+        },
+        "data": {
+          "type": "message",
+          "text": "I can show you where your balance appears once you sign in.",
+          "i18n": {
+            "ko": {
+              "text": "로그인하시면 잔액이 표시되는 위치를 안내해 드릴게요."
+            }
+          }
+        }
+      },
+      {
+        "id": "n-card",
+        "type": "action",
+        "position": {
+          "x": 480,
+          "y": -40
+        },
+        "data": {
+          "type": "action",
+          "actionId": "start-card-lock",
+          "label": "Start card lock"
+        }
+      },
+      {
+        "id": "n-branch-hours",
+        "type": "message",
+        "position": {
+          "x": 480,
+          "y": 40
+        },
+        "data": {
+          "type": "message",
+          "text": "I can point you to the branch locator with opening hours.",
+          "i18n": {
+            "ko": {
+              "text": "운영 시간이 안내된 영업점 찾기 페이지로 연결해 드릴게요."
+            }
+          }
+        }
+      },
+      {
+        "id": "n-handoff",
+        "type": "handoff",
+        "position": {
+          "x": 480,
+          "y": 120
+        },
+        "data": {
+          "type": "handoff",
+          "text": "Connecting you to a person who can help.",
+          "i18n": {
+            "ko": {
+              "text": "도와드릴 수 있는 상담원에게 연결해 드릴게요."
+            }
+          }
+        }
+      },
+      {
+        "id": "n-end",
+        "type": "end",
+        "position": {
+          "x": 640,
+          "y": 0
+        },
+        "data": {
+          "type": "end"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-start-disclosure",
+        "source": "n-start",
+        "target": "n-disclosure"
+      },
+      {
+        "id": "e-disclosure-branch",
+        "source": "n-disclosure",
+        "target": "n-branch"
+      },
+      {
+        "id": "e-branch-balance",
+        "source": "n-branch",
+        "target": "n-balance",
+        "data": {
+          "intent": "balance_inquiry"
+        }
+      },
+      {
+        "id": "e-branch-card",
+        "source": "n-branch",
+        "target": "n-card",
+        "data": {
+          "condition": {
+            "==": [
+              {
+                "var": "intent"
+              },
+              "card_lock"
+            ]
+          }
+        }
+      },
+      {
+        "id": "e-branch-hours",
+        "source": "n-branch",
+        "target": "n-branch-hours",
+        "data": {
+          "intent": "branch_hours"
+        }
+      },
+      {
+        "id": "e-branch-human",
+        "source": "n-branch",
+        "target": "n-handoff",
+        "data": {
+          "intent": "talk_to_human"
+        }
+      },
+      {
+        "id": "e-balance-end",
+        "source": "n-balance",
+        "target": "n-end"
+      },
+      {
+        "id": "e-card-handoff",
+        "source": "n-card",
+        "target": "n-handoff"
+      },
+      {
+        "id": "e-hours-end",
+        "source": "n-branch-hours",
+        "target": "n-end"
+      }
+    ],
+    "viewport": {
+      "x": 0,
+      "y": 0,
+      "zoom": 1
+    }
+  }
+}
