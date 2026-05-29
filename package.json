@@ -13,6 +13,7 @@
     "smoke:browser": "node scripts/browser-smoke.mjs",
     "site:build": "npm run scenarios:build && npm run build && node scripts/build-pages.mjs",
     "smoke:site": "node scripts/site-smoke.mjs",
+    "smoke:flow": "node scripts/flow-e2e-smoke.mjs",
     "scenarios:build": "node scripts/build-scenarios.mjs",
     "bundle:build": "node scripts/build-bundle.mjs",
     "bench:intent": "node scripts/bench-intent.mjs"
