@@ -157,3 +157,46 @@ PRD 로드맵 P5(G5). 메커니즘(AI 고지 노드·governance 블록)은 P2b/P
 
 P5로 PRD 로드맵의 번호 단계는 사실상 완료(P6 핸드오프/멀티테넌트는 명시적 deferred — 스파이크 후 별도 PRD). 후속 후보: P3.1 어드민 폴리시
 (ko 분기 fallback, slot-fill 노드, 텍스트 절단), P6 스파이크.
+
+---
+
+# G3 — 임베딩 의도 해석기 (opt-in, 기존 seam)
+
+PRD 목표 G3. P1에서 지연/이중언어/모델만 벤치(`bench-intent.mjs`)로 확정했던 임베딩 분류를, 이제 **런타임 해석기**로 구현.
+키워드 해석기와 동일한 `prepare`/`classify` 계약 뒤에 붙어 `createFlowEngine({intentResolver})`로 주입된다. *why*는 여기.
+
+워크플로우(단일 writer TDD 구현 → 적대적 검증 4 병렬 → 조건부 수정). 검증 결과 verified-clean(blocking 0).
+
+## 산출물
+- `src/intent/embedding-resolver.js` — `createEmbeddingIntentResolver({model, dtype, prefix?, loadExtractor?})`. 의도별
+  프로토타입(EN+KO 합집합 발화)에 대한 **MAX 코사인**으로 점수. 코사인=정규화 벡터의 내적이라 점수 0..1. reduce 초기값
+  `{intent:null, score:0}`(키워드 미러) → 전부 비양수면 null. 반환 형태는 키워드 해석기와 바이트 동일.
+- `tests/embedding-resolver.test.mjs` — 오프라인 결정론 테스트(가짜 `loadExtractor` 주입, 네트워크 0). 계약/argmax,
+  e5 `query: ` 프리픽스 on/off, 프로토타입 캐싱(임베드 호출 횟수 단언), EN+KO 합집합, 빈 intents/빈 발화 가드,
+  불변성, prepare 멱등(prepare+classify 레이스에서 1회 로드), 진행 콜백 전달 + flow-engine 통합 2건(매칭 라우팅/임계값 미만 거부).
+- `src/api.js`·`tests/contracts.test.mjs` — export 추가.
+
+## 결정과 근거
+- **새 런타임 dep 0.** `@huggingface/transformers`는 이미 STT/TTS용 dependency. 기본 로더에서만 **lazy 동적 `import()`**
+  → 무다운로드 keyword 기본 경로는 transformers를 절대 끌어오지 않음(정적 호스트·오프라인 보존). 임베딩은 엄격히 opt-in.
+- **테스트 가능성 = 주입 seam.** `loadExtractor`로 추출기를 주입 가능 → 단위 테스트는 모델 다운로드 없이(콜드 7~22s 회피)
+  결정론적 가짜 임베딩으로 계약/캐싱/프리픽스를 전수 검증. 기본 로더만 실제 Transformers.js를 만지며 `bench-intent.mjs`의
+  검증된 경로(pooling:'mean'/normalize:true/numThreads=1/feature-extraction)와 동형.
+- **기본값은 PRD §4 채택.** model=`Xenova/multilingual-e5-small`, dtype=int8, e5 프리픽스 자동(`/e5/i` 매칭 시 `query: `).
+  flow-engine 수용 로직(`score>0 && score>=minScore`, threshold 기본 0.45)과 점수 스케일(0..1) 자연 호환.
+
+## 적대적 검증 → 메인 루프 수정 (medium 1 + low 1)
+- **캐시 키 충돌(medium).** `intentsCacheKey`가 구분자 없는 join이라 서로 다른 intent 집합이 같은 키로 매핑 가능
+  → 단일 슬롯 캐시가 다른 집합의 프로토타입을 잘못 서빙할 잠재 트랩(출하 경로는 단일 안정 집합 재사용이라 저확률).
+  수정: **길이 접두 인코딩**(`${len}:${value}`)으로 id/발화 내용·구분자·빈 문자열 무관하게 충돌 불가.
+- **음수 코사인 0 플로어링(low, 투명성).** `maxCosine`가 음수 유사도를 0으로 바닥처리(0..1 보장 + 키워드 비음수 미러).
+  flow-engine엔 무해(어차피 거부). JSDoc에 명시.
+- low 2건(numThreads=1 고정, e5 모델 id)은 정적 호스트 제약상 의도된 동작 + override 가능 → 유지.
+
+## 의도적 한계 (기록)
+- zeroshot/setfit 해석기는 동일 seam 위에 미구현(PRD §4 티어). 실모델 정확도/지연은 `bench:intent`가 별도 검증(네트워크 필요, npm test 제외).
+- 기본 로더는 모듈 전역 `env`를 변경(프로세스 전체 single-thread 강제) — 정적 호스트 기본으론 옳음; 멀티스레드 opt-in은 후속 옵션화 여지.
+
+## 검증 (메인 루프 독립 실행)
+- 루트 `npm test` **109/109**(이전 97 + 신규 12). `npm run validate` ok. `npm run build` ok(ESM/IIFE+workers).
+- `console.log`(src/) 0, 이모지 0, 제어문자 0, 파일 147줄(<800)·전 함수 소형. keyword 기본 경로 무회귀(transformers 미로드).
