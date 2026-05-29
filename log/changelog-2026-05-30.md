@@ -206,3 +206,43 @@ PRD 목표 G3. P1에서 지연/이중언어/모델만 벤치(`bench-intent.mjs`)
 - **IIFE 번들 회귀 수정(커밋 aad86a3).** G3의 `import('@huggingface/transformers')`가 **단일 파일 IIFE 빌드에 인라인**돼(IIFE는 코드 분할 불가) 무다운로드 기본 번들이 30KB→**61MB**로 폭증, GitHub Pages에 그대로 배포될 뻔함. 기본 로더를 **CDN URL import(`@vite-ignore`)**로 전환 → 모든 포맷에서 transformers가 external 유지, opt-in 시에만 lazy 다운로드. iife 61MB→**31KB** 복귀(`loadExtractor`로 self-host override 가능). 검증: iife 31KB, esm 40KB, dist/_site에 transformers 청크 없음, npm test 109/109.
 - **플로우 빌더 스타터 템플릿(온보딩).** 빈 캔버스 대신 프리빌트 동작 플로우로 시작하게 Toolbar에 "Start from template" 선택기 추가. 제공: **finance/education/insurance**(각 8노드 그래프 + 양어 disclosure + governance). support는 `flow.nodes=0`(레거시 keyword 경로)이라 의도적 제외. 구현: `admin/src/lib/templates.js`가 루트 `bundles/*.bundle.json`을 Vite JSON import(공개 config 아티팩트라 SDK 내부 결합 아님; dev용 `server.fs.allow:['..']` 추가, 빌드는 무관). App의 import 로직을 공유 `loadBundle` 헬퍼로 추출해 import/template 재사용, 템플릿은 `structuredClone`으로 모듈 불변 보호. 검증: admin `npm test` **29/29**(신규 4: 각 템플릿 스키마 유효 + 다노드 flow + round-trip), admin build ok, **admin smoke 확장**(템플릿 로드→캔버스 다노드→export 스키마 유효), site:build ok(`_site/admin`), root npm test 109/109.
 - **GitHub Pages = 플로우 빌더 배포 + 온보딩 가이드.** `build-pages.mjs`가 `admin/dist`를 `_site/admin`으로 복사 + `admin/index.html` 단언, `site:build`에 `npm run build --prefix admin` 추가, CI(`pages.yml`)에 `npm ci --prefix admin` 단계 추가. admin은 이미 `base:'./'`라 `/admin/` 서브경로에서 동작. 랜딩(`site/index.html`)에 온보딩 3스텝 섹션(데모→노코드 플로우→배포) + nav "Flow builder"/"Get started" + hero "Open Flow Builder" 버튼, EN/KO i18n 키 양쪽 추가(`textContent` 적용이라 키 누락 시에도 안전). 검증: site:build ok(`_site/admin/index.html` 생성, 자산 상대경로), smoke:site ok(랜딩 무회귀), admin smoke ok, npm test 109/109.
+
+---
+
+# 어드민 비개발자 친화 개선 — 가이드/툴팁 + 다국어(EN/KO) + 라이브 테스트
+
+처음 본 사용자가 노드 8종의 역할을 모름. 가이드/툴팁 부재, 빌더 UI 영어 하드코딩,
+빌드한 플로우를 실제 어시스턴트로 즉시 시험할 방법 없음. simplicity 우선으로 개선. *why*는 여기.
+
+## 사용자 확정 사항
+- 테스트: 기본 = 라이브 텍스트 미리보기(실제 `createFlowEngine` + 오버레이, 무다운로드).
+  옵션 토글 ON 시 실제 로컬 음성(WASM STT + Piper TTS, 모델 다운로드).
+- 도움말: 툴팁 + 접이식 "How it works" 도움말 패널.
+- 다국어: 빌더 UI + 도움말 전체 EN/KO, 영어 기본. 노드 `kind` 식별자는 영어 유지(엔진 결합 보호).
+
+## 설계 결정
+- **i18n은 표시 레이어로 분리.** 노드 `kind`/필드 라벨 EN 원본은 `node-kinds.js`(엔진 단일 출처) 유지.
+  `t(key, fallback)`: KO 사전 → EN 사전 → fallback(node-kinds 라벨) 순. 라벨 중복/드리프트 방지.
+- **노드 설명/필드 도움말/색상 액센트는 신규 콘텐츠** → `admin/src/i18n/node-content.js`(en+ko, 순수 데이터).
+- **라이브 테스트**: admin이 런타임 SDK 소스(`../../../src/api.js`) + `overlay.css`를 Vite로 번들.
+  SDK는 admin에 의존 안 하므로 "SDK zero-dep" 불변식 유지(역방향 의존만 추가). 기본 keyword 해석기라
+  transformers 미로드. 음성 워커는 배포 시 `/dist/workers/`(build-pages 복사) → `new URL('../dist/', href)`로 해석.
+  기본 noop 어댑터, 토글 ON일 때만 실제 다운로드(opt-in).
+
+## 신규/수정 파일
+신규: i18n/{strings.js, node-content.js, context.jsx}, components/{Tooltip, HelpPanel, LanguageToggle, TestPanel}.jsx, lib/test-center.js.
+수정: App/main/Toolbar/NodePalette/InspectorPanel/MetadataForm/FlowNode.jsx, styles.css, index.html, README.md.
+
+## 검증
+- admin `npm test` **36/36**(기존 29 + 신규 i18n 7: en↔ko 키 패리티, 빈 값 금지, 노드 8종 전수 양어 설명/필드 도움말, 라벨 fallback 계약, 미지 kind 안전 degrade).
+- admin `npm run smoke` ok — **e2e 확장**: 노드 추가→export 스키마 유효 / 템플릿 로드→export 유효 / **EN↔KO 토글로 chrome 현지화** / **툴팁 노출** / **라이브 테스트 드로어가 실제 엔진 마운트→타이핑→어시스턴트 응답** / **음성 토글 재빌드 클린**.
+- admin `npm run build` ok(309 모듈, 591KB). transformers는 정적 번들 **미포함**(CDN @vite-ignore 경로 유지 — `_site/admin/assets` grep 0).
+- 루트 `npm test` **114/114**(이전 109 + 신규 STT 어댑터 5). `validate`/`site:build`/`smoke:site`/`smoke:flow`/`smoke:browser` 전부 ok.
+
+## Codex 교차 리뷰 → 반영 (HIGH 1 + MEDIUM 2 + LOW 2, 전부 CLOSED)
+- **HIGH: 라이브 테스트 음성 teardown 누수.** `center.destroy()`는 오버레이 DOM만 제거 → 음성 모드에서 마이크 스트림/STT·TTS 워커가 드로어 닫기·재빌드·토글·StrictMode 재마운트 후에도 잔존(프라이버시: 마이크 ON 유지). 근본 원인: **WASM STT 어댑터 `stop()`이 워커를 전혀 종료 안 함**(`resetWorker`는 prepare 실패 시에만 호출), 공개 dispose 부재. 수정: SDK `wasm-stt-adapter.js`에 **`destroy()` 추가**(마이크 스트림 해제 + 워커 terminate + 진행 중 transcribe/`prepare` 프로미스 settle — 추가 메서드라 기존 계약 무변경, vanilla 데모 무영향). `test-center.js`는 `mountTestCenter`가 `{center, dispose}` 반환, `dispose`가 `stt.destroy()`+`tts.stop()`+`endCall()`+`destroy()`를 `safeCall`(동기 throw + async rejection 모두 흡수)로 호출. 신규 `tests/stt-adapter.test.mjs`(5)로 계약 고정(워커 1회 terminate, prepare 전/반복 호출 안전, **prepare 진행 중 destroy가 hang 대신 reject**).
+- **MEDIUM: select 옵션이 원시 엔진 id 노출**(`first-interaction`/`zeroshot` 등) → KO 미완. 수정: value는 엔진 id 유지, 표시 라벨만 `meta.opt.*` 키로 EN/KO 현지화(패리티 테스트 적용).
+- **MEDIUM: 툴팁 `<button>`이 `<label>` 안에 중첩** → 클릭이 라벨 대상 컨트롤로 전달(포인터/AT 취약). 수정: 인스펙터/메타폼 전 라벨을 `.field-head` 행으로 바꿔 Tooltip을 `<label>`의 **형제**로 분리.
+- **LOW: LanguageToggle이 화살표키 패턴 없이 radio role 사용** → 거짓 계약. 수정: `role="group"` + `aria-pressed` 토글 버튼으로 변경(네이티브 버튼 키보드 동작과 일치).
+- **LOW: 빈 플로우 가드 문구 불일치**(가드는 nodes===0인데 문구는 "Start+Message+연결" 요구). 수정: 문구를 실제 가드에 맞춰 정정.
+- 확인 패스: Codex 재리뷰로 5건 전부 CLOSED + 신규 회귀 0 확인.

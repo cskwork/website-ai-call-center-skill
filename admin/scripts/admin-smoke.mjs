@@ -36,14 +36,15 @@ try {
 
   await page.goto(`http://127.0.0.1:${port}/`);
   await page.waitForSelector('header.toolbar');
-  await page.waitForSelector('aside.palette button');
+  await page.waitForSelector('aside.palette button.palette-block');
   await page.waitForSelector('.react-flow');
 
   // Canvas starts empty; adding a node from the palette renders exactly one node.
+  // The first palette element is now a help tip, so target the block buttons.
   if ((await page.locator('.react-flow__node').count()) !== 0) {
     throw new Error('expected an empty canvas on load');
   }
-  await page.locator('aside.palette button').first().click();
+  await page.locator('aside.palette button.palette-block').first().click();
   await page.waitForSelector('.react-flow__node');
   if ((await page.locator('.react-flow__node').count()) !== 1) {
     throw new Error('expected exactly one node after adding from the palette');
@@ -52,7 +53,7 @@ try {
   // Export -> validate -> download. Assert the success banner AND a schema-valid file.
   const [download] = await Promise.all([
     page.waitForEvent('download'),
-    page.getByRole('button', { name: 'Export bundle' }).click(),
+    page.getByRole('button', { name: 'Export', exact: true }).click(),
   ]);
   await page.waitForSelector('.banner-ok');
 
@@ -70,7 +71,7 @@ try {
   await page.waitForFunction(() => document.querySelectorAll('.react-flow__node').length > 1);
   const [templateDownload] = await Promise.all([
     page.waitForEvent('download'),
-    page.getByRole('button', { name: 'Export bundle' }).click(),
+    page.getByRole('button', { name: 'Export', exact: true }).click(),
   ]);
   const templateBundle = JSON.parse(fs.readFileSync(await templateDownload.path(), 'utf8'));
   if (!validateBundle(templateBundle)) {
@@ -79,6 +80,39 @@ try {
   if ((templateBundle.flow?.nodes?.length ?? 0) <= 1) {
     throw new Error('loaded template should export its multi-node flow');
   }
+
+  // Multilingual: switching to Korean localizes the chrome; switch back to English.
+  await page.getByRole('button', { name: '한국어' }).click();
+  await page.waitForSelector('text=플로우 테스트');
+  await page.getByRole('button', { name: 'English' }).click();
+  await page.getByRole('button', { name: 'Test flow', exact: true }).waitFor();
+
+  // Tooltips: hovering a help affordance reveals its bubble.
+  await page.locator('button.tip-trigger').first().hover();
+  await page.waitForSelector('.tip-bubble');
+  await page.mouse.move(0, 0); // dismiss the hover tooltip
+
+  // Live test: run the loaded finance flow in the real assistant overlay, send a
+  // typed message, and assert the engine replies. Proves the builder->runtime path
+  // end to end without exporting (text mode downloads no models).
+  await page.getByRole('button', { name: 'Test flow', exact: true }).click();
+  await page.waitForSelector('.test-panel');
+  await page.waitForSelector('.test-mount .waicc-fab');
+  await page.getByRole('button', { name: 'Open assistant', exact: true }).click();
+  await page.waitForSelector('.test-mount .waicc-input:visible');
+  await page.fill('.test-mount .waicc-input', 'I want to check my account balance');
+  await page.click('.test-mount .waicc-send');
+  await page.waitForSelector('.test-mount .waicc-message.waicc-assistant');
+  const reply = (await page.locator('.test-mount .waicc-message.waicc-assistant').first().innerText()).trim();
+  if (!reply) throw new Error('live test: assistant produced an empty reply');
+
+  // Voice toggle: enabling it rebuilds the center with the real WASM speech
+  // adapters (no model download until Prepare). Assert the path mounts cleanly and
+  // disposes the prior center; then switch back to text mode.
+  await page.locator('.test-voice input[type="checkbox"]').check();
+  await page.waitForSelector('.test-mount .waicc-fab');
+  await page.locator('.test-voice input[type="checkbox"]').uncheck();
+  await page.waitForSelector('.test-mount .waicc-fab');
 
   if (consoleErrors.length) throw new Error(`browser console errors:\n${consoleErrors.join('\n')}`);
   console.log('admin-smoke: ok');

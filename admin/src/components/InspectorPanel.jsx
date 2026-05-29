@@ -1,9 +1,13 @@
-import { dataFieldsForKind, NODE_KINDS } from '../lib/node-kinds.js';
+import { dataFieldsForKind } from '../lib/node-kinds.js';
 import { getPath } from '../lib/nested-data.js';
+import { fieldHelp, fieldLabel, nodeDescription, nodeLabel } from '../i18n/node-content.js';
+import { useI18n } from '../i18n/context.jsx';
+import { Tooltip } from './Tooltip.jsx';
 
 /**
  * Editor for the selected node's data fields (per NODE_KINDS) or the selected
  * edge's routing mode. All inputs are controlled and render values as text only.
+ * Labels and help are localized; node kind ids stay engine-stable.
  *
  * @param {{
  *   node: object|null,
@@ -14,33 +18,41 @@ import { getPath } from '../lib/nested-data.js';
  * }} props
  */
 export function InspectorPanel({ node, edge, onNodeField, onEdgeMode, onEdgeValue }) {
+  const { t } = useI18n();
   if (node) return <NodeInspector node={node} onNodeField={onNodeField} />;
   if (edge) return <EdgeInspector edge={edge} onEdgeMode={onEdgeMode} onEdgeValue={onEdgeValue} />;
   return (
     <aside className="inspector">
-      <h2>Inspector</h2>
-      <p className="hint">Select a node or an edge to edit it.</p>
+      <h2>{t('inspector.title')}</h2>
+      <p className="hint">{t('inspector.empty')}</p>
     </aside>
   );
 }
 
 function NodeInspector({ node, onNodeField }) {
+  const { t, locale } = useI18n();
   const kind = node.type;
   const fields = dataFieldsForKind(kind);
-  const label = NODE_KINDS[kind]?.label ?? kind;
   return (
     <aside className="inspector">
-      <h2>{label} node</h2>
-      {fields.length === 0 && <p className="hint">This node has no editable fields.</p>}
+      <h2>
+        {nodeLabel(kind, locale)} {t('inspector.nodeSuffix')}
+      </h2>
+      <p className="hint inspector-desc">{nodeDescription(kind, locale)}</p>
+      {fields.length === 0 && <p className="hint">{t('inspector.noFields')}</p>}
       {fields.map((field) => {
         const value = getPath(node.data, field.key) ?? '';
         const id = `f_${field.key}`;
+        const help = fieldHelp(kind, field.key, locale);
         return (
           <div className="field" key={field.key}>
-            <label htmlFor={id}>
-              {field.label}
-              {field.required ? ' *' : ''}
-            </label>
+            <div className="field-head">
+              <label htmlFor={id}>
+                {fieldLabel(kind, field, locale)}
+                {field.required ? ` (${t('inspector.required')})` : ''}
+              </label>
+              {help && <Tooltip content={help} label={fieldLabel(kind, field, locale)} />}
+            </div>
             {field.input === 'textarea' ? (
               <textarea id={id} value={value} onChange={(e) => onNodeField(field.key, e.target.value)} />
             ) : (
@@ -74,21 +86,29 @@ function conditionText(condition) {
 }
 
 function EdgeInspector({ edge, onEdgeMode, onEdgeValue }) {
+  const { t } = useI18n();
   const mode = edgeMode(edge);
   return (
     <aside className="inspector">
-      <h2>Edge routing</h2>
+      <h2>{t('edge.title')}</h2>
+      <p className="hint inspector-desc">{t('edge.intro')}</p>
       <div className="field">
-        <label htmlFor="edge-mode">Routing mode</label>
+        <div className="field-head">
+          <label htmlFor="edge-mode">{t('edge.mode')}</label>
+          <Tooltip content={t('edge.modeHelp')} label={t('edge.mode')} />
+        </div>
         <select id="edge-mode" value={mode} onChange={(e) => onEdgeMode(e.target.value)}>
-          <option value="none">Default (fallback)</option>
-          <option value="intent">Match intent id</option>
-          <option value="condition">Condition (raw JSON)</option>
+          <option value="none">{t('edge.mode.none')}</option>
+          <option value="intent">{t('edge.mode.intent')}</option>
+          <option value="condition">{t('edge.mode.condition')}</option>
         </select>
       </div>
       {mode === 'intent' && (
         <div className="field">
-          <label htmlFor="edge-intent">Intent id</label>
+          <div className="field-head">
+            <label htmlFor="edge-intent">{t('edge.intentLabel')}</label>
+            <Tooltip content={t('edge.intentHelp')} label={t('edge.intentLabel')} />
+          </div>
           <input
             id="edge-intent"
             value={edge.data?.intent ?? ''}
@@ -98,7 +118,10 @@ function EdgeInspector({ edge, onEdgeMode, onEdgeValue }) {
       )}
       {mode === 'condition' && (
         <div className="field">
-          <label htmlFor="edge-condition">Condition expression (JSON)</label>
+          <div className="field-head">
+            <label htmlFor="edge-condition">{t('edge.conditionLabel')}</label>
+            <Tooltip content={t('edge.conditionHelp')} label={t('edge.conditionLabel')} />
+          </div>
           <textarea
             id="edge-condition"
             value={conditionText(edge.data?.condition)}
@@ -106,7 +129,7 @@ function EdgeInspector({ edge, onEdgeMode, onEdgeValue }) {
           />
         </div>
       )}
-      <p className="hint">A default edge with no intent/condition is the fallback path.</p>
+      <p className="hint">{t('edge.hint')}</p>
     </aside>
   );
 }

@@ -6,6 +6,8 @@ import { NodePalette } from './components/NodePalette.jsx';
 import { FlowCanvas } from './components/FlowCanvas.jsx';
 import { InspectorPanel } from './components/InspectorPanel.jsx';
 import { MetadataForm } from './components/MetadataForm.jsx';
+import { TestPanel } from './components/TestPanel.jsx';
+import { useI18n } from './i18n/context.jsx';
 
 import { makeEmptyBundle } from './lib/empty-bundle.js';
 import { templateBundle } from './lib/templates.js';
@@ -26,6 +28,7 @@ function jsonTextFor(bundle) {
 }
 
 export function App() {
+  const { t } = useI18n();
   const initialFlow = useMemo(() => bundleToFlow(INITIAL_BUNDLE), []);
   const [nodes, setNodes, onNodesChange] = useNodesState(initialFlow.nodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialFlow.edges);
@@ -34,6 +37,7 @@ export function App() {
   const [jsonError, setJsonError] = useState({ intents: null, scenarios: null });
   const [selection, setSelection] = useState({ node: null, edge: null });
   const [status, setStatus] = useState({ kind: 'idle', message: '' });
+  const [testing, setTesting] = useState(false);
 
   const onConnect = useCallback(
     (connection) => setEdges((eds) => addEdge(createEdge(connection.source, connection.target), eds)),
@@ -115,28 +119,32 @@ export function App() {
     [meta, nodes, edges],
   );
 
-  const onExport = useCallback(() => {
-    if (jsonError.intents || jsonError.scenarios) {
-      setStatus({ kind: 'error', message: 'Fix the JSON errors in intents/scenarios before exporting.' });
-      return;
-    }
+  // Build the current flow into a validated bundle, or return a friendly reason
+  // it cannot be built. Shared by Export and the live Test panel.
+  const getTestBundle = useCallback(() => {
+    if (jsonError.intents || jsonError.scenarios) return { ok: false, message: t('status.exportFix') };
     let bundle;
     try {
       bundle = buildBundle();
     } catch (err) {
-      // flowToBundle throws when a condition edge holds unparseable JSON; block
-      // export so an always-true condition string never ships.
-      setStatus({ kind: 'error', message: err.message });
-      return;
+      // flowToBundle throws when a condition edge holds unparseable JSON.
+      return { ok: false, message: err.message };
     }
     const result = validateBundle(bundle);
-    if (!result.valid) {
-      setStatus({ kind: 'error', message: 'Bundle is not valid. Fix these and try again:', errors: result.errors });
+    if (!result.valid) return { ok: false, message: t('status.invalid'), errors: result.errors };
+    return { ok: true, bundle };
+  }, [buildBundle, jsonError, t]);
+
+  const onExport = useCallback(() => {
+    const result = getTestBundle();
+    if (!result.ok) {
+      // A condition-JSON parse error has no errors list; surface its message.
+      setStatus({ kind: 'error', message: result.message, errors: result.errors });
       return;
     }
-    downloadJson(`${bundle.tenant?.id ?? 'tenant'}.bundle.json`, bundle);
-    setStatus({ kind: 'ok', message: 'Bundle validated and downloaded.' });
-  }, [buildBundle, jsonError]);
+    downloadJson(`${result.bundle.tenant?.id ?? 'tenant'}.bundle.json`, result.bundle);
+    setStatus({ kind: 'ok', message: t('status.exported') });
+  }, [getTestBundle, t]);
 
   // Replace the whole canvas + metadata from a validated bundle. Shared by file
   // import and the prebuilt starter templates.
@@ -163,12 +171,12 @@ export function App() {
     async (file) => {
       try {
         const parsed = await readJsonFile(file);
-        loadBundle(parsed, 'Bundle imported.', 'Imported file is not a valid bundle:');
+        loadBundle(parsed, t('status.imported'), t('status.importInvalid'));
       } catch (err) {
         setStatus({ kind: 'error', message: err.message });
       }
     },
-    [loadBundle],
+    [loadBundle, t],
   );
 
   // Start from a prebuilt working flow. Deep-clone so the imported template module
@@ -177,14 +185,20 @@ export function App() {
     (id) => {
       const bundle = templateBundle(id);
       if (!bundle) return;
-      loadBundle(structuredClone(bundle), `Loaded the ${id} template. Edit and export when ready.`, 'Template is not valid:');
+      loadBundle(structuredClone(bundle), t('status.templateLoaded').replace('{name}', id), t('status.templateInvalid'));
     },
-    [loadBundle],
+    [loadBundle, t],
   );
 
   return (
     <div className="app">
-      <Toolbar onImportFile={onImportFile} onExport={onExport} onLoadTemplate={onLoadTemplate} status={status} />
+      <Toolbar
+        onImportFile={onImportFile}
+        onExport={onExport}
+        onLoadTemplate={onLoadTemplate}
+        onOpenTest={() => setTesting(true)}
+        status={status}
+      />
       <div className="workspace">
         <NodePalette onAdd={addNode} />
         <FlowCanvas
@@ -212,6 +226,7 @@ export function App() {
           />
         </div>
       </div>
+      {testing && <TestPanel getTestBundle={getTestBundle} onClose={() => setTesting(false)} />}
     </div>
   );
 }

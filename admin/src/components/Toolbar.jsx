@@ -1,20 +1,25 @@
 import { useRef } from 'react';
 
 import { TEMPLATES } from '../lib/templates.js';
+import { useI18n } from '../i18n/context.jsx';
+import { Tooltip } from './Tooltip.jsx';
+import { LanguageToggle } from './LanguageToggle.jsx';
 
 /**
- * Top action bar: start from a prebuilt template, import a bundle file,
- * export/validate the current build, and show the latest validation status.
- * Errors render as React text children only.
+ * Top action bar: start from a prebuilt template, import a bundle file, test the
+ * flow live, export/validate the current build, switch language, and show the
+ * latest validation status. Errors render as React text children only.
  *
  * @param {{
  *   onImportFile: (file: File) => void,
  *   onExport: () => void,
  *   onLoadTemplate: (id: string) => void,
+ *   onOpenTest: () => void,
  *   status: { kind: 'idle'|'ok'|'error', message: string, errors?: Array<{path:string,message:string}> }
  * }} props
  */
-export function Toolbar({ onImportFile, onExport, onLoadTemplate, status }) {
+export function Toolbar({ onImportFile, onExport, onLoadTemplate, onOpenTest, status }) {
+  const { t } = useI18n();
   const fileRef = useRef(null);
 
   function handleFile(event) {
@@ -31,12 +36,13 @@ export function Toolbar({ onImportFile, onExport, onLoadTemplate, status }) {
 
   return (
     <header className="toolbar">
-      <strong>AI Call Center Builder</strong>
+      <strong className="brand">{t('app.title')}</strong>
+
       <label className="template-picker">
-        Start from template
-        <select defaultValue="" onChange={handleTemplate} aria-label="Start from a prebuilt template">
+        {t('toolbar.template')}
+        <select defaultValue="" onChange={handleTemplate} aria-label={t('toolbar.template')}>
           <option value="" disabled>
-            Choose a template…
+            {t('toolbar.templatePlaceholder')}
           </option>
           {TEMPLATES.map((template) => (
             <option key={template.id} value={template.id}>
@@ -44,14 +50,32 @@ export function Toolbar({ onImportFile, onExport, onLoadTemplate, status }) {
             </option>
           ))}
         </select>
+        <Tooltip content={t('toolbar.templateHelp')} label={t('toolbar.template')} />
       </label>
-      <button type="button" onClick={() => fileRef.current?.click()}>
-        Import bundle
-      </button>
+
+      <span className="toolbar-action">
+        <button type="button" onClick={() => fileRef.current?.click()}>
+          {t('toolbar.import')}
+        </button>
+        <Tooltip content={t('toolbar.importHelp')} label={t('toolbar.import')} />
+      </span>
       <input ref={fileRef} type="file" accept="application/json,.json" hidden onChange={handleFile} />
-      <button type="button" onClick={onExport}>
-        Export bundle
-      </button>
+
+      <span className="toolbar-action">
+        <button type="button" className="btn-primary" onClick={onOpenTest}>
+          {t('toolbar.test')}
+        </button>
+        <Tooltip content={t('toolbar.testHelp')} label={t('toolbar.test')} />
+      </span>
+
+      <span className="toolbar-action">
+        <button type="button" onClick={onExport}>
+          {t('toolbar.export')}
+        </button>
+        <Tooltip content={t('toolbar.exportHelp')} label={t('toolbar.export')} />
+      </span>
+
+      <LanguageToggle />
       <StatusBanner status={status} />
     </header>
   );

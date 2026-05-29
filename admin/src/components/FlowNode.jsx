@@ -1,5 +1,7 @@
 import { Handle, Position } from '@xyflow/react';
-import { NODE_KINDS, NODE_KIND_LIST, handlesForKind } from '../lib/node-kinds.js';
+import { NODE_KIND_LIST, handlesForKind } from '../lib/node-kinds.js';
+import { nodeAccent, nodeLabel } from '../i18n/node-content.js';
+import { useI18n } from '../i18n/context.jsx';
 
 /**
  * One-line summary of a node's data for the canvas. All values are rendered as
@@ -13,13 +15,13 @@ function summarize(kind, data) {
   switch (kind) {
     case 'message':
     case 'handoff':
-      return data.text || '(no text)';
+      return data.text || '';
     case 'intent-branch':
-      return data.fallback ? `fallback: ${data.fallback}` : '(no fallback)';
+      return data.fallback ? `fallback: ${data.fallback}` : '';
     case 'slot-fill':
-      return data.slot ? `slot: ${data.slot}` : '(no slot)';
+      return data.slot ? `slot: ${data.slot}` : '';
     case 'action':
-      return data.actionId ? `${data.actionId} / ${data.label || ''}` : '(no action)';
+      return data.actionId ? `${data.actionId} / ${data.label || ''}` : '';
     default:
       return '';
   }
@@ -27,22 +29,23 @@ function summarize(kind, data) {
 
 /**
  * Custom React Flow node. `type` (the kind) is provided by React Flow via the
- * nodeTypes registration. Text is rendered exclusively through React children
- * (auto-escaped); dangerouslySetInnerHTML is never used.
+ * nodeTypes registration. The kind label is localized and a color accent helps
+ * non-technical users tell blocks apart. Text is rendered exclusively through
+ * React children (auto-escaped); dangerouslySetInnerHTML is never used.
  *
  * @param {{ type: string, data: object }} props
  */
 function FlowNode({ type, data }) {
+  const { locale } = useI18n();
   const kind = type;
   const handles = handlesForKind(kind);
   const showTarget = handles === 'target' || handles === 'both';
   const showSource = handles === 'source' || handles === 'both';
-  const label = NODE_KINDS[kind]?.label ?? kind;
   const summary = summarize(kind, data);
   return (
-    <div className="flow-node">
+    <div className="flow-node" style={{ borderLeftColor: nodeAccent(kind) }}>
       {showTarget && <Handle type="target" position={Position.Left} />}
-      <div className="kind">{label}</div>
+      <div className="kind">{nodeLabel(kind, locale)}</div>
       {summary && <div className="summary">{summary}</div>}
       {showSource && <Handle type="source" position={Position.Right} />}
     </div>

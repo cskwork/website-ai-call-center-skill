@@ -19,7 +19,8 @@ const DEFAULT_MODEL = 'onnx-community/distil-small.en';
  * @param {string|null} [options.workerUrl] Explicit worker URL.
  * @returns {{ prepare: (onProgress?: Function) => Promise<void>,
  *   start: (onTranscript?: Function) => Promise<void>,
- *   stop: () => Promise<{ text: string, final: boolean, source: string, durationMs?: number }> }}
+ *   stop: () => Promise<{ text: string, final: boolean, source: string, durationMs?: number }>,
+ *   destroy: () => void }}
  */
 export function createWasmSttAdapter({
   WorkerCtor = globalThis.Worker,
@@ -38,12 +39,16 @@ export function createWasmSttAdapter({
   let chunks = [];
   let pending = null;
   let report = () => {};
+  let rejectPrepare = null;
 
   async function prepare(onProgress = report) {
     report = onProgress;
     if (ready) return ready;
     worker = createWorker(WorkerCtor, resolveAssetUrl('workers/stt-worker.js', workerUrl, workerBaseUrl));
-    ready = new Promise((resolve, reject) => wireWorker(resolve, reject));
+    ready = new Promise((resolve, reject) => {
+      rejectPrepare = reject; // let destroy() settle an in-flight prepare()
+      wireWorker(resolve, reject);
+    });
     // On init failure, clear cached state so a later prepare() can retry.
     ready.catch(() => resetWorker());
     worker.postMessage({ type: 'init', dtype, modelId, localModelPath, useLocalModels, useOpfsCache });
@@ -112,7 +117,20 @@ export function createWasmSttAdapter({
     ready = null;
   }
 
-  return { prepare, start, stop };
+  // Release the microphone and terminate the worker. stop() only ends a recording
+  // (and leaves the prepared worker resident), so callers that mount/unmount the
+  // adapter (e.g. a preview that toggles voice) need this to avoid leaking a live
+  // mic stream or an idle worker. Settles any in-flight transcription and is safe
+  // to call repeatedly.
+  function destroy() {
+    stopStream();
+    reject('STT adapter destroyed'); // settle any in-flight transcription
+    rejectPrepare?.(new Error('STT adapter destroyed')); // settle an in-flight prepare()
+    rejectPrepare = null;
+    resetWorker();
+  }
+
+  return { prepare, start, stop, destroy };
 }
 
 function createWorker(WorkerCtor, workerUrl) {
