@@ -6,6 +6,8 @@ test('public exports include framework-agnostic call-center primitives', () => {
   for (const name of [
     'createWebsiteCallCenter',
     'createLocalRuleEngine',
+    'createFlowEngine',
+    'createKeywordIntentResolver',
     'createHttpEngineAdapter',
     'createSafeActionRegistry',
     'createWasmSttAdapter',

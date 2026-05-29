@@ -3,6 +3,8 @@ export { createEventBus } from './core/events.js';
 export { createCallStateMachine } from './core/state-machine.js';
 export { createSafeActionRegistry } from './actions/safe-actions.js';
 export { createLocalRuleEngine } from './engine/local-rule-engine.js';
+export { createFlowEngine } from './engine/flow-engine.js';
+export { createKeywordIntentResolver } from './intent/keyword-resolver.js';
 export { createHttpEngineAdapter } from './engine/http-engine-adapter.js';
 export { createWasmSttAdapter } from './stt/wasm-stt-adapter.js';
 export { createNoopSttAdapter } from './stt/noop-stt-adapter.js';

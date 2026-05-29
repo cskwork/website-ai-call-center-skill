@@ -214,3 +214,16 @@ PRD 갱신: §4 의도 해석기(다국어 디폴트), R1 리스크 해소.
 - **3라운드 누적 미해결**: 경쟁사 가격(Vapi/Retell/Synthflow/Bland — 가격 페이지 변동으로 적대적 검증 연속 미통과, 설계 비핵심), PCI/GDPR 세부, P1 지연 외부 코로보레이션 없음(직접 측정으로 대체).
 
 검증: `npm test` 그린 유지(번들/스키마 경로 무회귀). bench는 네트워크/모델 다운로드 필요로 test 미포함(`npm run bench:intent`).
+
+### P2a — 번들 기반 flow-engine + pluggable IntentResolver (완료, 검증됨)
+신규: `src/intent/keyword-resolver.js`(무다운로드 키워드 IntentResolver), `src/engine/flow-engine.js`(번들 기반 엔진), `tests/flow-engine.test.mjs`(11 테스트). `src/api.js`에 `createFlowEngine`/`createKeywordIntentResolver` export(배럴 `index.js`가 `export *`로 승계), `tests/contracts.test.mjs`·`scripts/validate.mjs` 갱신.
+
+결정과 근거:
+- **P2 범위 축소(P2a/P2b 분리).** 플로우 그래프는 아직 authoring(P3) 전이라 빈 상태 → 노드 그래프 실행기를 미리 만드는 건 premature. 그래서 P2a는 **의도→시나리오 루프**(README의 "intent resolver만 교체" 경로를 번들·다국어·slot·고지 인지로 실현)에 집중. 그래프 실행 + 안전 조건 평가기 + `from_entity` slot은 P2b로 미뤄 P3 authoring과 결합.
+- **IntentResolver seam = pluggable 어댑터.** 기존 stt/tts/engine 철학과 동형: `prepare()`+`classify(text,{intents})`. 디폴트 keyword(무다운로드). 임베딩/zero-shot/setfit이 같은 계약으로 끼워짐(테스트의 stub 주입으로 seam 검증). 키워드 점수는 길이가중 정수, 수용 규칙 `score>0 && score>=threshold`(임베딩 0..1 임계값과 공존).
+- **flow-engine은 기존 어댑터 계약 드롭인.** `startSession/sendUserText/endSession`(+ resolver 지연로드용 `prepare`). 응답에 `{text,actions}`(create-call-center가 소비) + `scenarioId/intent/score/workflow/handoff/slots`(직접 소비자용). `local-rule-engine`은 그대로 보존(back-compat).
+- **slot = Rasa식 K-V.** startSession에서 initial_value로 초기화, `from_intent` 매핑 자동 채움(deterministic). `from_entity`는 NER 필요 → P2b.
+- **AI 고지 1급화.** 첫 상호작용 시 locale별 disclosure 텍스트를 응답 앞에 1회 prepend(showOn first-interaction/every-session, off면 생략). 컴플라이언스 결정(R3) 코드 반영.
+- **조건 평가기 미포함(P2b).** Rasa pypred 이식 불가 → eval 없는 자체 JSON 평가기는 실행할 조건(authored 노드/엣지)이 생기는 P3와 결합.
+
+검증: `npm test` **52/52**(신규 11), `validate` ok, `npm run build` ok(flow-engine/keyword-resolver가 브라우저 ESM/IIFE로 깨끗이 번들). README의 createFlowEngine 문서화는 후속.
