@@ -146,3 +146,71 @@ Re-ran all six steps from a clean checkout after the cleanup: 36/36 tests, `vali
 in EN and KO: confirmed `<html lang>` flips, nav/skip-link/region aria-labels/scenario catalog localize,
 the KO `h1` wraps without clipping, and the overlay opens with exactly two visible controls in the fresh
 idle state (`음성 준비` + `보내기`) using SVG icons — confirming the 5-button row is gone.
+
+---
+
+## Research + PRD: 다도메인 노코드 플랫폼 방향 (의사결정 기록)
+
+2라운드 deep-research(웹 검색 fan-out → 소스 fetch → 클레임당 3표 적대적 검증) 후 PRD/아키텍처 설계.
+*Why*는 여기, *what*은 두 문서에. 산출물:
+- `docs/research-multidomain-platform-2026-05-29.md` — R1(24소스/12확정) + R2(30소스/24확정), 확정/기각/미검증 구분.
+- `docs/prd-multidomain-platform.md` — config-bundle 스키마 v2, pluggable IntentResolver, FlowEngine, 노코드 어드민, 컴플라이언스 표면, 6단계 로드맵.
+
+핵심 결정과 근거:
+- **빌더/실행 엔진 분리하되 엔진은 자체 확장.** Voiceflow 런타임은 Node 전용(vm2 등)이라 클라이언트 포팅 불가 → 기존 `local-rule-engine`을 `flow-engine`으로 확장. 비파괴(어댑터 계약 유지).
+- **의도분류 티어화, 디폴트는 keyword 유지.** all-MiniLM-L6-v2 int8(~23MB) 임베딩이 권장 업그레이드지만 브라우저 CPU/WASM 지연이 연구에서 미정량 → opt-in으로 두고 P1에서 벤치마크 후 디폴트 승격 판단. 정적 호스팅 무다운로드 텍스트 경로 보존.
+- **조건 평가는 자체 안전 평가기.** Rasa의 pypred는 이식 불가 + `eval` 금지(기존 "등록된 action만 실행" 보안 원칙 계승).
+- **컴플라이언스 1급화.** AI 고지는 NAIC(보험)·EU AI Act Art.50 양쪽 반복 의무이고 데이터 로컬리티로 면제 안 됨 → disclosure 노드 + governance 메타데이터.
+- **멀티테넌시/라이브 핸드오프는 v1 비목표.** 연구 미해결(상시 서버 강제 가능성) → 정적 디폴트 비파괴 위해 스파이크 후 v2 결정. v1 핸드오프는 webhook fire-and-forget만.
+
+미해결(3차 리서치 후보): 브라우저 추론 지연 실측, 핸드오프/멀티테넌시 최소 서버면, 비EU 컴플라이언스(FERPA/PCI/GDPR/마이크 동의), 경쟁사 가격·의존도.
+
+---
+
+## P0 구현 + P1 벤치마크 스파이크 (다도메인 플랫폼 착수)
+
+PRD 로드맵의 P0·P1을 실행. *what*은 코드/스키마에, *why*는 여기.
+
+### P0 — config-bundle 스키마 v2 + 무손실 마이그레이션 (완료, 검증됨)
+신규: `schemas/config-bundle.schema.json`(기존 call-scenario 스키마를 `$ref`로 재사용 — DRY), `scripts/build-bundle.mjs`(scenarios/*.yml → `bundles/support.bundle.json`, `--check` 스테일 가드로 build-scenarios.mjs idiom 따름), `tests/config-bundle.test.mjs`(5 테스트). `package.json`에 `bundle:build` + `validate`에 `build-bundle --check` 추가. `validate.mjs` 구조 가드 갱신.
+- 결정: 번들은 기존 시나리오를 **verbatim 보존**(테스트가 `deepEqual`로 무손실 확증). 도메인 무관 레이어(tenant/domain/intentModel/slots/intents/flow/disclosure/governance)를 위에 얹음. flow 최상위는 React Flow 형태(`nodes/edges/viewport`), 페이로드는 `node.data`.
+- 검증: `npm test` 41/41(신규 5 포함), `build-scenarios/build-bundle/validate` 모두 ok.
+
+### P1 — 브라우저 CPU/WASM 의도분류 지연 벤치마크 (완료, 실측)
+신규: `scripts/bench-intent.mjs`(playwright headless Chromium + Transformers.js CDN, 커밋된 번들의 intents를 프로토타입으로 dogfooding). `npm run bench:intent`. **npm test에는 미포함**(모델 다운로드/네트워크 필요).
+
+측정(EN 4 + KO 2 held-out 쿼리, 소표본 — 방향성):
+
+| 구성 | 콜드 로드 | 웜 중앙값 | 정확도 |
+|---|---|---|---|
+| all-MiniLM-L6-v2 int8, EN 프로토타입 | 7.4s | 11.1ms | 4/6 (KO 0/2) |
+| paraphrase-multilingual-MiniLM-L12-v2 int8, EN 프로토타입 | 21.7s | 17.5ms | 5/6 (KO 1/2) |
+| 동 multilingual + **EN+KO 합집합 프로토타입** | 20.9s | 17.1ms | **6/6** |
+
+결론과 근거:
+- **R1(지연 미정량) 해소.** 웜 추론 11~18ms/쿼리(CPU/WASM 싱글스레드) → 인터랙티브. 임베딩 의도분류는 브라우저에서 실용적. "1000x" 류 과장 없이 실측.
+- **콜드 로드 7~22s(1회성).** → 임베딩은 lazy·opt-in 업그레이드(진행 표시)로, keyword는 무다운로드 디폴트로 둔다(즉답 + 정적 호스팅).
+- **이중언어엔 다국어 모델 필수.** all-MiniLM(영어 전용)은 KO 유사도 0.13~0.15로 완전 실패. paraphrase-multilingual로 교체 시 KO 신호 회복. 비용: 콜드 ~2x, 웜 ~1.5x — KO가 핵심이므로 수용.
+- **프로토타입도 이중언어.** intents 프로토타입을 EN+KO 합집합으로 채우자 5/6→6/6. 기존 키워드 `unionTerms`(EN+KO)와 동형. → P2에서 `build-bundle.mjs` 마이그레이션이 `intents[].utterances`를 EN+KO 합집합으로 채우도록 갱신(현재는 EN만; bench는 로컬에서 합집합으로 증명).
+- 한계: 표본 6개 — 정식 벤치 스위트 아님. 방향성 결론.
+
+PRD 갱신: §4 의도 해석기(다국어 디폴트), R1 리스크 해소.
+
+### Round 3 리서치 + P1.5 모델 헤드투헤드 (종합 검토)
+3차 deep-research(26소스/24확정/1기각) + e5 프리픽스 지원 추가한 bench로 임베딩 디폴트 확정. *why*는 여기, 상세는 `docs/research-multidomain-platform-2026-05-29.md` Round 3.
+
+임베딩 헤드투헤드(int8, EN+KO 합집합 프로토타입, 6쿼리 방향성):
+
+| 모델 | 콜드 | 웜 중앙값 | 정확도 | 점수 분리 |
+|---|---|---|---|---|
+| all-MiniLM-L6-v2 | 7.4s | 11.1ms | 4/6 | 영어 전용 |
+| paraphrase-multilingual-MiniLM-L12-v2 | 20.9s | 17.1ms | 6/6 | 진단 0.59 |
+| **multilingual-e5-small** (`query:` 프리픽스) | 23.1s | 21.1ms | **6/6** | **진단 0.91** |
+
+종합 결정과 근거:
+- **임베딩 디폴트 = `multilingual-e5-small`.** e5-small·MiniLM-L12-v2 모두 6/6이나 e5-small이 Transformers.js 1st-party ONNX + 점수 분리도 우수(임계값/OOS 견고). `query:` 프리픽스 필수(bench에 자동 적용). MiniLM-L12-v2는 프리픽스 불필요 대안. gte-multilingual-base는 더 높은 천장이나 공식 ONNX 없음(서드파티 미러)·768-dim으로 CPU/WASM엔 무거움.
+- **핸드오프/멀티테넌시 R5 해소.** Cloudflare Durable Objects(Hibernatable WebSockets → 유휴 과금 0, idFromName 테넌트 격리)/PartyKit/셀프호스트 Chatwoot로 **상시 서버 없이** 옵션 라이브 핸드오프 가능. 최소 서버 = 대화당 DO 1개. v1 정적 디폴트 비파괴. PRD §8/§10 R5 갱신.
+- **컴플라이언스 R3 부분 해소.** 금융(FINRA 24-09/ESMA)은 기술 중립 → **클라이언트 사이드가 규제 의무를 면제하지 않음**(마케팅 주의). SEC PDA 제안 2025.6 철회. FERPA school-official은 계약 통제 필요. PCI-DSS scope·GDPR 역할·마이크 동의는 미확정 → go-live 전 법무 게이트. PRD §7/§10 R3 갱신.
+- **3라운드 누적 미해결**: 경쟁사 가격(Vapi/Retell/Synthflow/Bland — 가격 페이지 변동으로 적대적 검증 연속 미통과, 설계 비핵심), PCI/GDPR 세부, P1 지연 외부 코로보레이션 없음(직접 측정으로 대체).
+
+검증: `npm test` 그린 유지(번들/스키마 경로 무회귀). bench는 네트워크/모델 다운로드 필요로 test 미포함(`npm run bench:intent`).
