@@ -1,0 +1,537 @@
+{
+  "schemaVersion": "2",
+  "tenant": {
+    "id": "acme-insure",
+    "name": "Acme Insurance (Template)",
+    "locales": [
+      "en",
+      "ko"
+    ]
+  },
+  "domain": "insurance",
+  "governance": {
+    "owner": "owner@example.com",
+    "modelVersions": {
+      "intent": "keyword",
+      "llm": null
+    },
+    "lastReviewed": "2026-05-30",
+    "notes": "Illustrative template scaffolding. Replace all copy and review with your own compliance, legal, and security teams before production use."
+  },
+  "disclosure": {
+    "required": true,
+    "showOn": "first-interaction",
+    "text": {
+      "en": "You are chatting with an AI assistant, not a human insurance agent. For claims and policy changes you may be connected to a person.",
+      "ko": "사람 보험 상담원이 아니라 AI 도우미와 대화하고 있습니다. 보험금 청구나 계약 변경은 상담원에게 연결될 수 있습니다."
+    }
+  },
+  "intentModel": {
+    "resolver": "keyword",
+    "threshold": 0,
+    "model": null
+  },
+  "slots": {
+    "topic": {
+      "type": "categorical",
+      "initial_value": null,
+      "values": [
+        "claim",
+        "coverage",
+        "policy",
+        "agent"
+      ],
+      "mappings": [
+        {
+          "type": "from_intent",
+          "intent": "file_claim",
+          "value": "claim"
+        },
+        {
+          "type": "from_intent",
+          "intent": "check_coverage",
+          "value": "coverage"
+        }
+      ]
+    }
+  },
+  "intents": [
+    {
+      "id": "file_claim",
+      "utterances": [
+        "I want to file a claim",
+        "How do I report an accident",
+        "Start a claim for damage"
+      ],
+      "scenario": "claim"
+    },
+    {
+      "id": "check_coverage",
+      "utterances": [
+        "What does my coverage include",
+        "Is this covered by my plan",
+        "Check my coverage"
+      ],
+      "scenario": "coverage"
+    },
+    {
+      "id": "update_policy",
+      "utterances": [
+        "I need to update my policy",
+        "Change my address on the policy",
+        "Update my contact details"
+      ],
+      "scenario": "policy"
+    },
+    {
+      "id": "talk_to_agent",
+      "utterances": [
+        "I want to talk to a person",
+        "Connect me to an agent",
+        "Escalate to a human"
+      ],
+      "scenario": "agent"
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "claim",
+      "catalog_order": 10,
+      "scenario_intent": "file_claim",
+      "title": "File a claim",
+      "button_label": "Start a claim",
+      "summary": "Helps start an insurance claim and connects you to a person to review it.",
+      "utterances": [
+        "I want to file a claim",
+        "How do I report an accident",
+        "Start a claim for damage"
+      ],
+      "match": {
+        "keywords": [
+          "claim",
+          "file",
+          "accident",
+          "damage"
+        ]
+      },
+      "reply": {
+        "text": "I can help you start a claim and connect you to a person who can review the details with you. I do not decide claim outcomes myself."
+      },
+      "frontend_actions": [
+        {
+          "id": "start-claim",
+          "label": "Start a claim"
+        }
+      ],
+      "workflow": {
+        "issue_type": "claim_intake",
+        "handoff": true
+      },
+      "i18n": {
+        "ko": {
+          "title": "보험금 청구",
+          "button_label": "청구 시작하기",
+          "summary": "보험금 청구를 시작하도록 돕고, 내용을 검토할 상담원에게 연결합니다.",
+          "utterances": [
+            "보험금을 청구하고 싶어요",
+            "사고를 어떻게 접수하나요",
+            "손해에 대한 청구를 시작할게요"
+          ],
+          "reply": {
+            "text": "청구를 시작하도록 도와드리고, 자세한 내용을 함께 검토할 상담원에게 연결해 드릴게요. 저는 청구 결과를 직접 결정하지 않습니다."
+          },
+          "frontend_actions": [
+            {
+              "id": "start-claim",
+              "label": "청구 시작"
+            }
+          ],
+          "match": {
+            "keywords": [
+              "청구",
+              "보험금",
+              "사고",
+              "손해"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "coverage",
+      "catalog_order": 20,
+      "scenario_intent": "check_coverage",
+      "title": "Check coverage",
+      "button_label": "Check my coverage",
+      "summary": "Points to where your plan details and coverage information are listed.",
+      "utterances": [
+        "What does my coverage include",
+        "Is this covered by my plan",
+        "Check my coverage"
+      ],
+      "match": {
+        "keywords": [
+          "coverage",
+          "covered",
+          "plan"
+        ]
+      },
+      "reply": {
+        "text": "I can point you to your plan page where coverage details are listed. I do not confirm what is covered myself, so please review the page or ask a person."
+      },
+      "frontend_actions": [
+        {
+          "id": "show-coverage",
+          "label": "Open coverage page"
+        }
+      ],
+      "workflow": {
+        "issue_type": "coverage_inquiry",
+        "handoff": false
+      },
+      "i18n": {
+        "ko": {
+          "title": "보장 내용 확인",
+          "button_label": "보장 내용 보기",
+          "summary": "가입 플랜과 보장 내용이 안내된 곳으로 연결합니다.",
+          "utterances": [
+            "제 보장 내용에 무엇이 포함되나요",
+            "이것도 제 플랜에 보장되나요",
+            "보장 내용을 확인하고 싶어요"
+          ],
+          "reply": {
+            "text": "보장 내용이 안내된 플랜 페이지로 연결해 드릴게요. 저는 보장 여부를 직접 확인하지 않으니, 페이지를 확인하시거나 상담원에게 문의해 주세요."
+          },
+          "frontend_actions": [
+            {
+              "id": "show-coverage",
+              "label": "보장 페이지 보기"
+            }
+          ],
+          "match": {
+            "keywords": [
+              "보장",
+              "약관",
+              "플랜",
+              "커버"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "policy",
+      "catalog_order": 30,
+      "scenario_intent": "update_policy",
+      "title": "Update policy",
+      "button_label": "Update my policy",
+      "summary": "Points to where you can update policy details such as your address.",
+      "utterances": [
+        "I need to update my policy",
+        "Change my address on the policy",
+        "Update my contact details"
+      ],
+      "match": {
+        "keywords": [
+          "update",
+          "policy",
+          "change",
+          "address"
+        ]
+      },
+      "reply": {
+        "text": "I can point you to where policy details such as your address can be updated. Some changes may still need a person to confirm them."
+      },
+      "frontend_actions": [
+        {
+          "id": "show-policy-update",
+          "label": "Open policy update"
+        }
+      ],
+      "workflow": {
+        "issue_type": "policy_update",
+        "handoff": false
+      },
+      "i18n": {
+        "ko": {
+          "title": "계약 변경",
+          "button_label": "계약 변경하기",
+          "summary": "주소 등 계약 정보를 변경할 수 있는 곳으로 연결합니다.",
+          "utterances": [
+            "계약 내용을 변경하고 싶어요",
+            "계약의 주소를 변경해 주세요",
+            "연락처 정보를 수정할게요"
+          ],
+          "reply": {
+            "text": "주소 등 계약 정보를 변경할 수 있는 곳으로 안내해 드릴게요. 일부 변경은 상담원의 확인이 필요할 수 있습니다."
+          },
+          "frontend_actions": [
+            {
+              "id": "show-policy-update",
+              "label": "계약 변경 열기"
+            }
+          ],
+          "match": {
+            "keywords": [
+              "변경",
+              "계약",
+              "주소",
+              "수정"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "agent",
+      "catalog_order": 40,
+      "scenario_intent": "talk_to_agent",
+      "title": "Talk to a person",
+      "button_label": "Talk to a person",
+      "summary": "Hands the conversation off to a human insurance agent.",
+      "utterances": [
+        "I want to talk to a person",
+        "Connect me to an agent",
+        "Escalate to a human"
+      ],
+      "match": {
+        "keywords": [
+          "agent",
+          "human",
+          "person",
+          "representative",
+          "escalate"
+        ]
+      },
+      "reply": {
+        "text": "I will connect you with a person who can help further."
+      },
+      "frontend_actions": [
+        {
+          "id": "request-handoff",
+          "label": "Connect to an agent"
+        }
+      ],
+      "workflow": {
+        "issue_type": "escalation",
+        "handoff": true
+      },
+      "i18n": {
+        "ko": {
+          "title": "상담원 연결",
+          "button_label": "상담원 연결",
+          "summary": "대화를 사람 보험 상담원에게 인계합니다.",
+          "utterances": [
+            "사람과 이야기하고 싶어요",
+            "상담원에게 연결해 주세요",
+            "사람에게 연결해 주세요"
+          ],
+          "reply": {
+            "text": "더 도와드릴 수 있는 상담원에게 연결해 드릴게요."
+          },
+          "frontend_actions": [
+            {
+              "id": "request-handoff",
+              "label": "상담원에게 연결"
+            }
+          ],
+          "match": {
+            "keywords": [
+              "상담원",
+              "사람",
+              "설계사",
+              "연결"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "flow": {
+    "nodes": [
+      {
+        "id": "n-start",
+        "type": "start",
+        "position": {
+          "x": 0,
+          "y": 0
+        },
+        "data": {
+          "type": "start"
+        }
+      },
+      {
+        "id": "n-disclosure",
+        "type": "ai-disclosure",
+        "position": {
+          "x": 160,
+          "y": 0
+        },
+        "data": {
+          "type": "ai-disclosure"
+        }
+      },
+      {
+        "id": "n-branch",
+        "type": "intent-branch",
+        "position": {
+          "x": 320,
+          "y": 0
+        },
+        "data": {
+          "type": "intent-branch",
+          "fallback": {
+            "en": "I can help with filing a claim, checking coverage, or updating your policy. Which one?",
+            "ko": "보험금 청구, 보장 내용 확인, 계약 변경 중에서 무엇을 도와드릴까요?"
+          }
+        }
+      },
+      {
+        "id": "n-coverage",
+        "type": "message",
+        "position": {
+          "x": 480,
+          "y": -120
+        },
+        "data": {
+          "type": "message",
+          "text": "I can point you to your plan page where coverage details are listed.",
+          "i18n": {
+            "ko": {
+              "text": "보장 내용이 안내된 플랜 페이지로 연결해 드릴게요."
+            }
+          }
+        }
+      },
+      {
+        "id": "n-policy",
+        "type": "action",
+        "position": {
+          "x": 480,
+          "y": -40
+        },
+        "data": {
+          "type": "action",
+          "actionId": "show-policy-update",
+          "label": "Open policy update"
+        }
+      },
+      {
+        "id": "n-claim",
+        "type": "message",
+        "position": {
+          "x": 480,
+          "y": 40
+        },
+        "data": {
+          "type": "message",
+          "text": "I can help you start a claim and connect you to a person to review the details.",
+          "i18n": {
+            "ko": {
+              "text": "청구를 시작하도록 돕고, 자세한 내용을 검토할 상담원에게 연결해 드릴게요."
+            }
+          }
+        }
+      },
+      {
+        "id": "n-handoff",
+        "type": "handoff",
+        "position": {
+          "x": 640,
+          "y": 40
+        },
+        "data": {
+          "type": "handoff",
+          "text": "Connecting you to a person who can help.",
+          "i18n": {
+            "ko": {
+              "text": "도와드릴 수 있는 상담원에게 연결해 드릴게요."
+            }
+          }
+        }
+      },
+      {
+        "id": "n-end",
+        "type": "end",
+        "position": {
+          "x": 800,
+          "y": 0
+        },
+        "data": {
+          "type": "end"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "e-start-disclosure",
+        "source": "n-start",
+        "target": "n-disclosure"
+      },
+      {
+        "id": "e-disclosure-branch",
+        "source": "n-disclosure",
+        "target": "n-branch"
+      },
+      {
+        "id": "e-branch-coverage",
+        "source": "n-branch",
+        "target": "n-coverage",
+        "data": {
+          "intent": "check_coverage"
+        }
+      },
+      {
+        "id": "e-branch-policy",
+        "source": "n-branch",
+        "target": "n-policy",
+        "data": {
+          "intent": "update_policy"
+        }
+      },
+      {
+        "id": "e-branch-claim",
+        "source": "n-branch",
+        "target": "n-claim",
+        "data": {
+          "condition": {
+            "==": [
+              {
+                "var": "intent"
+              },
+              "file_claim"
+            ]
+          }
+        }
+      },
+      {
+        "id": "e-branch-agent",
+        "source": "n-branch",
+        "target": "n-handoff",
+        "data": {
+          "intent": "talk_to_agent"
+        }
+      },
+      {
+        "id": "e-coverage-end",
+        "source": "n-coverage",
+        "target": "n-end"
+      },
+      {
+        "id": "e-policy-end",
+        "source": "n-policy",
+        "target": "n-end"
+      },
+      {
+        "id": "e-claim-handoff",
+        "source": "n-claim",
+        "target": "n-handoff"
+      }
+    ],
+    "viewport": {
+      "x": 0,
+      "y": 0,
+      "zoom": 1
+    }
+  }
+}
