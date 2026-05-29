@@ -29,6 +29,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install Flow Builder (admin) dependencies
+        run: npm ci --prefix admin
+
       - name: Test
         run: npm test
 

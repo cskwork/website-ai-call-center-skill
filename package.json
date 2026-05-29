@@ -11,7 +11,7 @@
     "test": "node --test tests/*.test.mjs && npm run validate",
     "validate": "node scripts/build-scenarios.mjs --check && node scripts/build-bundle.mjs --check && node scripts/validate.mjs",
     "smoke:browser": "node scripts/browser-smoke.mjs",
-    "site:build": "npm run scenarios:build && npm run build && node scripts/build-pages.mjs",
+    "site:build": "npm run scenarios:build && npm run build && npm run build --prefix admin && node scripts/build-pages.mjs",
     "smoke:site": "node scripts/site-smoke.mjs",
     "smoke:flow": "node scripts/flow-e2e-smoke.mjs",
     "scenarios:build": "node scripts/build-scenarios.mjs",
