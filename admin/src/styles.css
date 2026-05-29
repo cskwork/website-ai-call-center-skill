@@ -48,6 +48,22 @@ body {
   background: #eef1f5;
 }
 
+.template-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #3b424c;
+}
+
+.template-picker select {
+  cursor: pointer;
+  padding: 6px 10px;
+  border: 1px solid #cbd2d9;
+  border-radius: 4px;
+  background: #fff;
+}
+
 .workspace {
   display: grid;
   grid-template-columns: 180px 1fr 300px;

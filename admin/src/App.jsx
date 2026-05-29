@@ -8,6 +8,7 @@ import { InspectorPanel } from './components/InspectorPanel.jsx';
 import { MetadataForm } from './components/MetadataForm.jsx';
 
 import { makeEmptyBundle } from './lib/empty-bundle.js';
+import { templateBundle } from './lib/templates.js';
 import { bundleToFlow, flowToBundle } from './lib/flow-bundle.js';
 import { validateBundle } from './lib/validate-bundle.js';
 import { createNode, createEdge } from './lib/node-factory.js';
@@ -137,33 +138,53 @@ export function App() {
     setStatus({ kind: 'ok', message: 'Bundle validated and downloaded.' });
   }, [buildBundle, jsonError]);
 
-  const onImportFile = useCallback(
-    async (file) => {
-      try {
-        const parsed = await readJsonFile(file);
-        const result = validateBundle(parsed);
-        if (!result.valid) {
-          setStatus({ kind: 'error', message: 'Imported file is not a valid bundle:', errors: result.errors });
-          return;
-        }
-        const flow = bundleToFlow(parsed);
-        setNodes(flow.nodes);
-        setEdges(flow.edges);
-        setMeta(parsed);
-        setJsonText(jsonTextFor(parsed));
-        setJsonError({ intents: null, scenarios: null });
-        setSelection({ node: null, edge: null });
-        setStatus({ kind: 'ok', message: 'Bundle imported.' });
-      } catch (err) {
-        setStatus({ kind: 'error', message: err.message });
+  // Replace the whole canvas + metadata from a validated bundle. Shared by file
+  // import and the prebuilt starter templates.
+  const loadBundle = useCallback(
+    (parsed, okMessage, invalidMessage) => {
+      const result = validateBundle(parsed);
+      if (!result.valid) {
+        setStatus({ kind: 'error', message: invalidMessage, errors: result.errors });
+        return;
       }
+      const flow = bundleToFlow(parsed);
+      setNodes(flow.nodes);
+      setEdges(flow.edges);
+      setMeta(parsed);
+      setJsonText(jsonTextFor(parsed));
+      setJsonError({ intents: null, scenarios: null });
+      setSelection({ node: null, edge: null });
+      setStatus({ kind: 'ok', message: okMessage });
     },
     [setNodes, setEdges],
   );
 
+  const onImportFile = useCallback(
+    async (file) => {
+      try {
+        const parsed = await readJsonFile(file);
+        loadBundle(parsed, 'Bundle imported.', 'Imported file is not a valid bundle:');
+      } catch (err) {
+        setStatus({ kind: 'error', message: err.message });
+      }
+    },
+    [loadBundle],
+  );
+
+  // Start from a prebuilt working flow. Deep-clone so the imported template module
+  // is never mutated by subsequent edits.
+  const onLoadTemplate = useCallback(
+    (id) => {
+      const bundle = templateBundle(id);
+      if (!bundle) return;
+      loadBundle(structuredClone(bundle), `Loaded the ${id} template. Edit and export when ready.`, 'Template is not valid:');
+    },
+    [loadBundle],
+  );
+
   return (
     <div className="app">
-      <Toolbar onImportFile={onImportFile} onExport={onExport} status={status} />
+      <Toolbar onImportFile={onImportFile} onExport={onExport} onLoadTemplate={onLoadTemplate} status={status} />
       <div className="workspace">
         <NodePalette onAdd={addNode} />
         <FlowCanvas
