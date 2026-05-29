@@ -227,3 +227,40 @@ PRD 갱신: §4 의도 해석기(다국어 디폴트), R1 리스크 해소.
 - **조건 평가기 미포함(P2b).** Rasa pypred 이식 불가 → eval 없는 자체 JSON 평가기는 실행할 조건(authored 노드/엣지)이 생기는 P3와 결합.
 
 검증: `npm test` **52/52**(신규 11), `validate` ok, `npm run build` ok(flow-engine/keyword-resolver가 브라우저 ESM/IIFE로 깨끗이 번들). README의 createFlowEngine 문서화는 후속.
+
+### P2b — 그래프 실행 엔진 + 안전 조건 평가기 + from_entity slot (완료, 검증됨)
+신규: `src/engine/condition.js`(eval 없는 프로토타입 오염 안전 JSON 조건 평가기), `tests/condition.test.mjs`(16 테스트). 확장: `src/engine/flow-engine.js`(그래프 실행기 + `from_entity`), `tests/flow-engine.test.mjs`(+10, 총 21). 와이어링: `src/api.js`에 `evaluateCondition` export, `tests/contracts.test.mjs`·`scripts/validate.mjs` 갱신. `bundles/support.bundle.json` **불변**(back-compat 증명).
+
+결정과 근거(*what*은 코드에):
+- **그래프 모드 게이트 = `flow.nodes.length > 0`, 팩토리 시점 1회 계산.** 빈 flow인 support 번들은 게이트 false → 레거시 의도→시나리오 경로가 byte-identical 유지(`build-bundle --check` 그린, 번들 미수정). `sendUserText`는 얇은 라우터 + 기존 본문 그대로의 `runLegacy` + 신규 `runGraph`로 분리(각 함수 <=50줄).
+- **조건 평가기는 봉인된 allowlist + read-only.** 13개 연산자(`var`,`==`,`!=`,`<`,`<=`,`>`,`>=`,`and`,`or`,`not`,`in`,`defined`,`empty`)를 frozen 핸들러 맵으로 디스패치. 미지 연산자 → 연산자명 포함 Error(fail-fast). `==`/`!=`는 strict(타입 강제 없음), 관계 연산자는 네이티브 JS 의미(undefined→NaN 비교 false). `true`/`undefined`/`{}` → 항상 참(디폴트/무조건 엣지), `false`/`null` → 거짓.
+- **프로토타입 오염 방어(CRITICAL).** var 경로는 루트(slot/entity/intent/score)만 허용, 매 세그먼트마다 `__proto__`/`prototype`/`constructor` 거부 → undefined. `Object.hasOwn`로만 조회(상속 속성 `hasOwnProperty` 등 미해결). 평가기는 절대 쓰지 않음(읽기 전용). 공유 `FORBIDDEN_KEYS` frozen Set을 flow-engine slot 쓰기(`fillSlotsFromEntity`/`applySlotFill`)에서 재사용 — 단일 오염 가드. 재귀 깊이 64 가드로 스택 오버플로 방어.
+- **루프 가드.** sendUserText당 노드 전이를 50으로 하드 캡(모든 노드 종류 포함). 순환 그래프가 행 없이 안전 반환. dangling 엣지 타깃 → nodeId=null 중단(fail-soft, 대화 중 크래시 금지).
+- **노드 종류.** start/message/action/ai-disclosure/slot-fill는 자동 진행; intent-branch는 현재 턴 의도로 out-edge 선택(미일치 시 fallback 출력 후 STAY); handoff는 `handoff:true`+텍스트 후 STOP; end는 종료(currentNodeId=null). action 노드는 `{id,label}`만 push — 엔진은 실행 안 함(create-call-center.onAction이 유일한 실행자, safe-action 경계 보존). **http-call은 P2b 범위 외 → no-op pass-through**(디폴트 엣지로 진행).
+- **엣지 선택.** out-edges 배열 순서로 첫 참 조건 선택; 조건/intent 둘 다 없는 엣지가 디폴트(아무 조건도 안 맞을 때만). intent 단축형 `edge.data.intent===intentId`도 수용.
+- **고지 중복 방지.** flow에 ai-disclosure 노드 있으면 엔진 레벨 prefix 억제(노드가 소유); 없으면 레거시 prefix. 둘 다 `session.disclosed` latch 공유 → 정확히 1회.
+- **from_entity slot(양 모드).** `fillSlotsFromEntity(entities)`가 classify 전에 실행. from_entity 매핑·엔티티 없으면 strict no-op(레거시 slot 테스트 불변 보장). 호출자 entities 읽기만(불변), 엔진 소유 session.slots에만 기록.
+
+검증: `node --test tests/*.test.mjs` **78/78**(신규 16 condition + 10 graph), `npm run validate` ok(scenarios/bundle --check/validate), `npm run build` ok(vite ESM+IIFE+workers; dist 산출물 존재). `npm run bench:intent`는 네트워크 필요로 미실행(지침대로).
+
+### P2b 리뷰 후속 — 직렬 intent-branch / slot-fill 의도 fallback 수정 (완료, 검증됨)
+한 턴에 intent-branch가 2개 이상 도달 가능한 플로우 + slot-fill의 from_intent fallback 두 건을 수정. 확장: `src/engine/flow-engine.js`, `tests/flow-engine.test.mjs`(+2, 총 23).
+
+결정과 근거(*what*은 코드에):
+- **턴당 intent 1회 소비(one-shot latch).** `advance`가 `turn.intentConsumed` 플래그 소유 → `stepNode`/`branchStep`로 전달. 한 advance에서 **첫** intent-branch만 의도 소비(pickEdge/fallback). 그 다음 도달하는 intent-branch는 다음 턴의 입력 노드이므로 `pickEdge`·fallback 없이 stop-and-wait(`{stop:true, nodeId:node.id}`). 종전엔 br1이 이미 소비한 의도를 br2가 다시 매칭 시도 → 미일치 시 사용자가 br2 질문에 답하기도 전에 "did not catch that" fallback(`fb2`)이 같은 턴에 새어 나옴. 단일 branch의 턴 간 resume는 영향 없음(플래그는 advance당 초기화).
+- **slot-fill from_intent fallback을 node.data.slot으로 한정.** 종전 `applySlotFill`의 else 분기는 전역 `fillSlotsFromIntent(accepted)`를 호출 → 모든 from_intent 매핑을 채워 선언한 slot은 비고 무관한 slot이 부작용으로 변함. 신규 `fillSlotFromIntent(slot, intentId)`로 해당 slot 자신의 from_intent 매핑만 기록. `fillSlotsFromIntent`(전역)는 레거시 `runLegacy` 경로에서 계속 사용 → 기존 동작 불변.
+
+검증: `node --test tests/*.test.mjs` **80/80**, `npm run validate` ok, `npm run build` ok. `bundles/support.bundle.json` 불변(back-compat 유지).
+
+### P2b 마감 — low-severity 일관성 수정 + 한계 명시 (메인 루프 독립 검증 후)
+적대적 리뷰의 low 4건을 분류: 2건 수정, 2건 의도적 보류. 확장: `src/engine/flow-engine.js`, `tests/flow-engine.test.mjs`(+1, 총 24 graph 관련 / 전체 **81/81**).
+
+수정:
+- **그래프 모드 config 고지 prefix 개행 정규화.** `takeDisclosure()`는 이미 `\n\n`를 덧붙이는데 `runGraph`가 `join('\n\n')`로 한 번 더 이어 붙여 ai-disclosure **노드가 없고 disclosure config만 있는** 경로에서 `\n\n\n\n`(4개행) 발생 → 레거시(`prefix + text`, 2개행)와 불일치. `takeDisclosure().trim()`으로 정규화. 회귀 테스트(고지 노드 없이 config만 있는 graph 번들; `\n{3,}` 부재 단언) 추가로 고정.
+- **slot 쓰기 오염 가드 일관화(defense-in-depth).** `fillSlotsFromEntity`/`applySlotFill`는 `FORBIDDEN_KEYS` 가드가 있었으나 형제 `fillSlotsFromIntent`(전역)·`initialSlots`는 누락. 동일 가드 추가. 런타임 입력(`context.entities`)으로는 도달 불가하고 신뢰된 빌드타임 번들만 트리거하므로 악용 가능성은 사실상 없었으나, 형제 경로와 동작을 통일하고 `__proto__`/`prototype`/`constructor` 이름 slot의 단일 객체 오염 여지를 제거.
+
+의도적 보류(코드 변경 없음, 한계로 기록):
+- **입력 노드 없는 순수 message 순환.** 루프 가드가 행은 막지만 턴마다 ~50개 메시지를 누적해 매 턴 큰 페이로드를 반복 출력. 이는 **authoring 오류**이며 P3 어드민의 빌드타임 사이클/도달성 검증에서 잡아야 할 영역 → 런타임 엔진에 사이클 복구 로직을 넣지 않음(범위 surgical 유지). 엔진은 SPEC대로 "안전 반환"은 보장.
+- **ai-disclosure 노드는 누적 텍스트 선두로 hoist(unshift).** flow 중간에 배치해도 응답 맨 앞에 렌더 → 법적으로 고지-우선이 바람직하므로 의도된 동작. 위치 보존이 필요하면 향후 `push`로 전환.
+
+검증: `node --test tests/*.test.mjs` **81/81**, `npm run validate` ok, `npm run build` ok(ESM 37.79kB + IIFE 29.80kB + workers). `bundles/support.bundle.json` 불변.
