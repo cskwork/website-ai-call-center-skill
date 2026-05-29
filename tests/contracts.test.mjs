@@ -9,6 +9,7 @@ test('public exports include framework-agnostic call-center primitives', () => {
     'createFlowEngine',
     'evaluateCondition',
     'createKeywordIntentResolver',
+    'createEmbeddingIntentResolver',
     'createHttpEngineAdapter',
     'createSafeActionRegistry',
     'createWasmSttAdapter',
