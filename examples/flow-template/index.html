@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Flow-engine template demo</title>
+  <link rel="stylesheet" href="../../dist/website-ai-call-center.css" />
+  <style>
+    body { margin: 0; font-family: system-ui, sans-serif; background: #f8fafc; color: #0f172a; }
+    main { max-width: 760px; margin: 0 auto; padding: 3rem 1rem; }
+    .bar { display: flex; gap: 1rem; align-items: end; margin: 1.5rem 0; flex-wrap: wrap; }
+    label { display: grid; gap: .35rem; font-weight: 600; }
+    select { border: 1px solid #cbd5e1; border-radius: .6rem; padding: .55rem; font: inherit; }
+    button { border: 0; border-radius: .7rem; background: #2563eb; color: white; padding: .7rem 1rem; cursor: pointer; }
+    button[disabled] { opacity: .5; cursor: progress; }
+    .muted { color: #64748b; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Multi-domain flow-engine demo</h1>
+    <p class="muted">
+      Runs a prebuilt industry template bundle through <code>createFlowEngine</code> and the overlay.
+      Keyword intent routing, the AI disclosure, and handoff are all client-side, no app framework, no model download.
+    </p>
+    <div class="bar">
+      <label>
+        Template
+        <select id="domain">
+          <option value="finance">finance</option>
+          <option value="education">education</option>
+          <option value="insurance">insurance</option>
+          <option value="support">support</option>
+        </select>
+      </label>
+      <label>
+        Locale
+        <select id="locale">
+          <option value="en">en</option>
+          <option value="ko">ko</option>
+        </select>
+      </label>
+      <button id="open" type="button" disabled>Open assistant</button>
+    </div>
+    <p id="status" class="muted">Loading template…</p>
+  </main>
+  <script src="../../dist/website-ai-call-center.iife.js"></script>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
