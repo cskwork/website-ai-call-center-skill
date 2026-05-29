@@ -1,0 +1,193 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cskwork.github.io/website-ai-call-center-skill/schemas/config-bundle.schema.json",
+  "title": "Website AI call-center config bundle (v2)",
+  "description": "Domain-agnostic config bundle that wraps the existing per-scenario schema with tenant, domain, intent-model, slot, flow, and compliance layers. One engine serves many domains by swapping this data, not code.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "tenant", "domain", "intentModel", "intents", "scenarios"],
+  "properties": {
+    "schemaVersion": { "const": "2" },
+    "tenant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "locales"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" },
+        "name": { "type": "string", "minLength": 1 },
+        "locales": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "pattern": "^[a-z]{2}(-[A-Za-z]{2})?$" }
+        }
+      }
+    },
+    "domain": { "enum": ["finance", "education", "insurance", "support", "custom"] },
+    "governance": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Per-tenant written-governance documentation surface (NAIC AIS Program style). Documentation only; the platform does not inherit the tenant's full compliance burden.",
+      "properties": {
+        "owner": { "type": "string", "minLength": 1 },
+        "modelVersions": {
+          "type": "object",
+          "additionalProperties": { "type": ["string", "null"] }
+        },
+        "lastReviewed": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+        "notes": { "type": "string" }
+      }
+    },
+    "disclosure": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "In-conversation AI-use disclosure. Required by NAIC and EU AI Act Art.50; client-side data residency does NOT waive it.",
+      "required": ["required"],
+      "properties": {
+        "required": { "type": "boolean" },
+        "showOn": { "enum": ["first-interaction", "every-session", "off"] },
+        "text": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "intentModel": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Which pluggable IntentResolver tier to use. keyword is the no-download default; embedding/zeroshot/setfit are lazy-loaded WASM upgrades.",
+      "required": ["resolver"],
+      "properties": {
+        "resolver": { "enum": ["keyword", "embedding", "zeroshot", "setfit"] },
+        "threshold": { "type": "number", "minimum": 0, "maximum": 1 },
+        "model": { "type": ["string", "null"] },
+        "dtype": { "type": "string" }
+      }
+    },
+    "slots": {
+      "type": "object",
+      "description": "Rasa-style typed key-value memory. Property name = slot name.",
+      "additionalProperties": { "$ref": "#/$defs/slot" }
+    },
+    "intents": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "utterances"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+          "utterances": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "scenario": { "type": "string", "pattern": "^[a-z][a-z0-9-]*$" }
+        }
+      }
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "https://cskwork.github.io/website-ai-call-center-skill/schemas/call-scenario.schema.json"
+      }
+    },
+    "flow": { "$ref": "#/$defs/flow" },
+    "rag": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode"],
+      "properties": {
+        "mode": { "enum": ["client", "backend", "off"] },
+        "model": { "type": ["string", "null"] },
+        "documents": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "text"],
+            "properties": {
+              "id": { "type": "string", "minLength": 1 },
+              "text": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "slot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "type": { "enum": ["text", "bool", "categorical", "float", "any", "list"] },
+        "initial_value": true,
+        "values": { "type": "array", "items": { "type": "string" } },
+        "mappings": { "type": "array", "items": { "$ref": "#/$defs/slotMapping" } }
+      }
+    },
+    "slotMapping": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "type": { "enum": ["from_entity", "from_intent", "from_text"] },
+        "entity": { "type": "string" },
+        "intent": { "type": "string" },
+        "value": true,
+        "conditions": { "type": "array", "items": { "type": "object" } }
+      }
+    },
+    "flow": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "React Flow ReactFlowJsonObject shape. Domain payload lives inside each node.data.",
+      "required": ["nodes", "edges", "viewport"],
+      "properties": {
+        "nodes": { "type": "array", "items": { "$ref": "#/$defs/flowNode" } },
+        "edges": { "type": "array", "items": { "$ref": "#/$defs/flowEdge" } },
+        "viewport": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["x", "y", "zoom"],
+          "properties": {
+            "x": { "type": "number" },
+            "y": { "type": "number" },
+            "zoom": { "type": "number" }
+          }
+        }
+      }
+    },
+    "flowNode": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["id", "position", "data"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "type": { "type": "string" },
+        "position": {
+          "type": "object",
+          "required": ["x", "y"],
+          "properties": {
+            "x": { "type": "number" },
+            "y": { "type": "number" }
+          }
+        },
+        "data": { "type": "object" }
+      }
+    },
+    "flowEdge": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["id", "source", "target"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "source": { "type": "string", "minLength": 1 },
+        "target": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}
