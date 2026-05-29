@@ -20,7 +20,8 @@ assert.match(read('docs/integration.md'), /Worker asset placement/);
 assert.match(read('docs/integration.md'), /Scenario catalog/);
 assert.match(read('package.json'), /"build": "vite build && vite build --config vite\.workers\.config\.mjs"/);
 assert.match(read('package.json'), /"scenarios:build": "node scripts\/build-scenarios\.mjs"/);
-assert.match(read('package.json'), /"site:build": "npm run scenarios:build && npm run build && node scripts\/build-pages\.mjs"/);
+assert.match(read('package.json'), /"site:build": "npm run scenarios:build && npm run build && npm run build --prefix admin && node scripts\/build-pages\.mjs"/);
+assert.match(read('scripts/build-pages.mjs'), /admin\/dist/);
 assert.match(read('examples/vanilla/main.js'), /function createSupportScenarioEngine/);
 assert.match(read('examples/vanilla/main.js'), /function createSupportActions/);
 assert.match(read('examples/vanilla/main.js'), /function createWasmSpeechAdapters/);
@@ -43,6 +44,7 @@ assert.match(read('scenarios/account.yml'), /scenario_intent: account_navigation
 assert.match(read('scenarios/diagnostics.yml'), /scenario_intent: browser_diagnostics/);
 assert.match(read('scenarios/ticket.yml'), /scenario_intent: escalation_ticket/);
 assert.match(read('.github/workflows/pages.yml'), /actions\/configure-pages@v6/);
+assert.match(read('.github/workflows/pages.yml'), /npm ci --prefix admin/);
 assert.match(read('.github/workflows/pages.yml'), /actions\/upload-pages-artifact@v5/);
 assert.match(read('.github/workflows/pages.yml'), /actions\/deploy-pages@v5/);
 assert.match(read('.github/workflows/pages.yml'), /github\.event\.repository\.private/);
