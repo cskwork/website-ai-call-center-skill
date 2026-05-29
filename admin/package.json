@@ -1,0 +1,23 @@
+{
+  "name": "website-ai-call-center-admin",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "description": "No-code admin builder (React Flow) that produces config bundles for the website-ai-call-center SDK. Decoupled from the runtime SDK build so the SDK keeps zero new runtime deps.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node --test test/*.test.mjs"
+  },
+  "dependencies": {
+    "@xyflow/react": "^12",
+    "react": "^19",
+    "react-dom": "^19"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6",
+    "ajv": "^8.20.0",
+    "vite": "^8"
+  }
+}
