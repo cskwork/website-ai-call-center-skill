@@ -98,16 +98,24 @@ export function createEmbeddingIntentResolver(options = {}) {
   return { prepare, classify };
 }
 
+// Transformers.js is loaded from a CDN, not bundled. A bare `import('@huggingface/
+// transformers')` would be INLINED into the IIFE build (no code-splitting in a
+// single-file bundle), bloating the default no-download bundle by ~60MB. A URL
+// import stays external in every format, so the keyword default ships byte-small
+// and Transformers.js downloads only when embedding is opted in. Override via the
+// `loadExtractor` option (e.g. to self-host) when a CDN is undesirable.
+const TRANSFORMERS_CDN = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.2.0';
+
 /**
- * Default loader: lazily import Transformers.js (kept dynamic so the keyword
- * default never pulls it in), force single-thread CPU/WASM, and return a
+ * Default loader: lazily import Transformers.js from a CDN (kept external so the
+ * keyword default never pulls it in), force single-thread CPU/WASM, and return a
  * feature-extraction pipeline.
  *
  * @param {{ model: string, dtype: string, onProgress?: Function }} args
  * @returns {Promise<Function>} extractor(text, { pooling, normalize }) => { data }
  */
 async function defaultLoadExtractor({ model, dtype, onProgress }) {
-  const { pipeline, env } = await import('@huggingface/transformers');
+  const { pipeline, env } = await import(/* @vite-ignore */ TRANSFORMERS_CDN);
   env.backends.onnx.wasm.numThreads = 1;
   return pipeline('feature-extraction', model, { dtype, progress_callback: onProgress });
 }
