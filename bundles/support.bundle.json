@@ -1,0 +1,347 @@
+{
+  "schemaVersion": "2",
+  "tenant": {
+    "id": "demo",
+    "name": "Demo Support",
+    "locales": [
+      "en",
+      "ko"
+    ]
+  },
+  "domain": "support",
+  "governance": {
+    "owner": "owner@example.com",
+    "modelVersions": {
+      "intent": "keyword",
+      "llm": null
+    },
+    "lastReviewed": "2026-05-29",
+    "notes": "Example bundle generated from scenarios/*.yml by scripts/build-bundle.mjs."
+  },
+  "disclosure": {
+    "required": true,
+    "showOn": "first-interaction",
+    "text": {
+      "en": "You are chatting with an AI assistant.",
+      "ko": "AI 도우미와 대화 중입니다."
+    }
+  },
+  "intentModel": {
+    "resolver": "keyword",
+    "threshold": 0,
+    "model": null
+  },
+  "intents": [
+    {
+      "id": "account_navigation",
+      "utterances": [
+        "I cannot find account settings",
+        "Where is my profile page",
+        "I need login settings"
+      ],
+      "scenario": "account"
+    },
+    {
+      "id": "audio_issue",
+      "utterances": [
+        "I cannot hear audio during a support call",
+        "My speaker is muted",
+        "Sound is not working"
+      ],
+      "scenario": "audio"
+    },
+    {
+      "id": "browser_diagnostics",
+      "utterances": [
+        "My page says offline and I need diagnostics",
+        "The network check is failing",
+        "Run browser diagnostics"
+      ],
+      "scenario": "diagnostics"
+    },
+    {
+      "id": "escalation_ticket",
+      "utterances": [
+        "I need to draft a technical support ticket",
+        "Please escalate this to an agent",
+        "Create a case for support"
+      ],
+      "scenario": "ticket"
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "account",
+      "catalog_order": 20,
+      "scenario_intent": "account_navigation",
+      "title": "Account path",
+      "button_label": "Find account settings",
+      "summary": "Shows where account, settings, profile, and login help live.",
+      "utterances": [
+        "I cannot find account settings",
+        "Where is my profile page",
+        "I need login settings"
+      ],
+      "match": {
+        "keywords": [
+          "account",
+          "settings",
+          "profile",
+          "login"
+        ]
+      },
+      "reply": {
+        "text": "I can point you to the account path and keep the action limited to a registered page target."
+      },
+      "frontend_actions": [
+        {
+          "id": "show-account",
+          "label": "Show account path"
+        }
+      ],
+      "workflow": {
+        "issue_type": "product_navigation",
+        "handoff": false
+      },
+      "i18n": {
+        "ko": {
+          "title": "계정 찾기",
+          "button_label": "계정 설정 찾기",
+          "summary": "계정, 설정, 프로필, 로그인 도움말이 어디 있는지 안내합니다.",
+          "utterances": [
+            "계정 설정을 못 찾겠어요",
+            "프로필 페이지가 어디예요",
+            "로그인 설정이 필요해요"
+          ],
+          "reply": {
+            "text": "계정 경로로 안내해 드릴게요. 등록된 페이지 영역으로만 동작을 제한합니다."
+          },
+          "frontend_actions": [
+            {
+              "id": "show-account",
+              "label": "계정 경로 보기"
+            }
+          ],
+          "match": {
+            "keywords": [
+              "계정",
+              "설정",
+              "프로필",
+              "로그인"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "audio",
+      "catalog_order": 10,
+      "scenario_intent": "audio_issue",
+      "title": "Audio setup",
+      "button_label": "Audio is broken",
+      "summary": "Guides headset, speaker, mute, and browser permission checks.",
+      "utterances": [
+        "I cannot hear audio during a support call",
+        "My speaker is muted",
+        "Sound is not working"
+      ],
+      "match": {
+        "keywords": [
+          "audio",
+          "hear",
+          "speaker",
+          "sound",
+          "mute"
+        ]
+      },
+      "reply": {
+        "text": "I can guide audio setup. Start with the headset panel, then run browser checks if voice still fails."
+      },
+      "frontend_actions": [
+        {
+          "id": "show-audio",
+          "label": "Show audio setup"
+        },
+        {
+          "id": "run-checks",
+          "label": "Run browser checks"
+        }
+      ],
+      "workflow": {
+        "issue_type": "technical_support",
+        "handoff": false
+      },
+      "i18n": {
+        "ko": {
+          "title": "오디오 설정",
+          "button_label": "소리가 안 나와요",
+          "summary": "헤드셋, 스피커, 음소거, 브라우저 권한을 점검하도록 안내합니다.",
+          "utterances": [
+            "상담 중에 소리가 안 들려요",
+            "스피커가 음소거됐어요",
+            "소리가 안 나와요"
+          ],
+          "reply": {
+            "text": "오디오 설정을 안내해 드릴게요. 헤드셋 패널부터 확인하고, 그래도 음성이 안 되면 브라우저 점검을 실행하세요."
+          },
+          "frontend_actions": [
+            {
+              "id": "show-audio",
+              "label": "오디오 설정 보기"
+            },
+            {
+              "id": "run-checks",
+              "label": "브라우저 점검 실행"
+            }
+          ],
+          "match": {
+            "keywords": [
+              "소리",
+              "오디오",
+              "스피커",
+              "음소거",
+              "안 들",
+              "안들"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "diagnostics",
+      "catalog_order": 30,
+      "scenario_intent": "browser_diagnostics",
+      "title": "Browser diagnostics",
+      "button_label": "Run diagnostics",
+      "summary": "Runs honest local checks for secure context, WASM, workers, storage, and mic access.",
+      "utterances": [
+        "My page says offline and I need diagnostics",
+        "The network check is failing",
+        "Run browser diagnostics"
+      ],
+      "match": {
+        "keywords": [
+          "offline",
+          "diagnostic",
+          "network",
+          "page"
+        ]
+      },
+      "reply": {
+        "text": "I can run honest browser capability checks and show the diagnostics card."
+      },
+      "frontend_actions": [
+        {
+          "id": "run-checks",
+          "label": "Run browser checks"
+        }
+      ],
+      "workflow": {
+        "issue_type": "technical_support",
+        "handoff": false
+      },
+      "i18n": {
+        "ko": {
+          "title": "브라우저 진단",
+          "button_label": "진단 실행",
+          "summary": "보안 컨텍스트, WASM, 워커, 저장소, 마이크 접근을 정직하게 로컬에서 점검합니다.",
+          "utterances": [
+            "페이지가 오프라인이라고 떠서 진단이 필요해요",
+            "네트워크 점검이 실패해요",
+            "브라우저 진단을 실행해 주세요"
+          ],
+          "reply": {
+            "text": "브라우저 기능을 정직하게 점검하고 진단 카드를 보여드릴게요."
+          },
+          "frontend_actions": [
+            {
+              "id": "run-checks",
+              "label": "브라우저 점검 실행"
+            }
+          ],
+          "match": {
+            "keywords": [
+              "오프라인",
+              "진단",
+              "네트워크",
+              "페이지"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "ticket",
+      "catalog_order": 40,
+      "scenario_intent": "escalation_ticket",
+      "title": "Ticket draft",
+      "button_label": "Draft ticket",
+      "summary": "Creates an escalation draft with the captured issue, page path, and speech mode.",
+      "utterances": [
+        "I need to draft a technical support ticket",
+        "Please escalate this to an agent",
+        "Create a case for support"
+      ],
+      "match": {
+        "keywords": [
+          "ticket",
+          "case",
+          "agent",
+          "support"
+        ]
+      },
+      "reply": {
+        "text": "I can draft a support ticket with the current page path and your issue summary."
+      },
+      "frontend_actions": [
+        {
+          "id": "draft-ticket",
+          "label": "Draft support ticket"
+        }
+      ],
+      "workflow": {
+        "issue_type": "escalation",
+        "handoff": true
+      },
+      "i18n": {
+        "ko": {
+          "title": "티켓 작성",
+          "button_label": "티켓 작성",
+          "summary": "수집된 문제, 페이지 경로, 음성 모드로 에스컬레이션 초안을 만듭니다.",
+          "utterances": [
+            "기술 지원 티켓을 작성하고 싶어요",
+            "상담원에게 에스컬레이션해 주세요",
+            "지원 케이스를 만들어 주세요"
+          ],
+          "reply": {
+            "text": "현재 페이지 경로와 문제 요약으로 지원 티켓 초안을 작성해 드릴게요."
+          },
+          "frontend_actions": [
+            {
+              "id": "draft-ticket",
+              "label": "지원 티켓 작성"
+            }
+          ],
+          "match": {
+            "keywords": [
+              "티켓",
+              "케이스",
+              "상담원",
+              "지원",
+              "에스컬"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "flow": {
+    "nodes": [],
+    "edges": [],
+    "viewport": {
+      "x": 0,
+      "y": 0,
+      "zoom": 1
+    }
+  }
+}

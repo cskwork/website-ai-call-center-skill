@@ -9,11 +9,13 @@
     "dev": "vite --host 127.0.0.1",
     "prepack": "npm run build",
     "test": "node --test tests/*.test.mjs && npm run validate",
-    "validate": "node scripts/build-scenarios.mjs --check && node scripts/validate.mjs",
+    "validate": "node scripts/build-scenarios.mjs --check && node scripts/build-bundle.mjs --check && node scripts/validate.mjs",
     "smoke:browser": "node scripts/browser-smoke.mjs",
     "site:build": "npm run scenarios:build && npm run build && node scripts/build-pages.mjs",
     "smoke:site": "node scripts/site-smoke.mjs",
-    "scenarios:build": "node scripts/build-scenarios.mjs"
+    "scenarios:build": "node scripts/build-scenarios.mjs",
+    "bundle:build": "node scripts/build-bundle.mjs",
+    "bench:intent": "node scripts/bench-intent.mjs"
   },
   "files": [
     "dist/",
