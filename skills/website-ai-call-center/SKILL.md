@@ -1,8 +1,6 @@
 ---
 name: website-ai-call-center
-description: Use when adding a framework-agnostic AI technical-support call center overlay to a website with browser WASM STT/TTS, optional HTTP AI, safe page actions, model progress, and minimal infrastructure.
-metadata:
-  short-description: Add a browser AI support call center
+description: Use when adding an AI technical-support call center overlay to a website (framework-agnostic, browser WASM STT/TTS, minimal infrastructure), or when editing its call scenarios, safe page actions, or speech/engine adapters.
 ---
 
 # Website AI Call Center
@@ -13,7 +11,7 @@ Use this skill to add a voice/text AI support overlay to any website without com
 
 - Static browser overlay first; ESM import when the app has a bundler.
 - Browser WASM STT first: `onnx-community/distil-small.en`, dtype `q4`.
-- Browser/local TTS first: Piper WASM; use `createNoopTtsAdapter()` fallback when the browser Speech API is not allowed.
+- Browser/local TTS first: Piper WASM, degrading to the `createNoopTtsAdapter()` fallback when WASM init or synthesis fails.
 - Local rule engine for zero-infra demos; HTTP engine for real AI workflows.
 - AI may request only registered safe actions by id.
 - Large model files go to browser cache/OPFS where possible, not localStorage.
@@ -24,10 +22,10 @@ Use this skill to add a voice/text AI support overlay to any website without com
 1. Find the website entry point and static asset path.
 2. Add the built JS/CSS or copy the template source into the app.
 3. Register safe page actions for navigation, scrolling, focus, or highlighting.
-4. Put local call scenarios in YAML: id, catalog_order, scenario_intent, title, utterances, match keywords, reply, workflow issue_type, and frontend action ids.
+4. Author each local call scenario as one YAML file in `scenarios/`, carrying every field `schemas/call-scenario.schema.json` marks required: `id`, `scenario_intent`, `title`, `button_label`, `summary`, `utterances`, `match.keywords`, `reply.text`, `frontend_actions[].id` plus `.label`, `workflow.issue_type`. `catalog_order`, `workflow.handoff`, and `i18n.ko` are optional; the schema rejects any other key.
 5. Pick STT/TTS adapters and show their progress events in the UI.
 6. Start with local scenarios, then swap to an HTTP AI engine if needed.
-7. Verify keyboard access, text fallback, model progress, TTS stop, and no arbitrary DOM execution.
+7. Run every check in `references/verification.md`, then account for every line of the Review checklist below.
 
 ## Integration shape
 
@@ -42,7 +40,7 @@ const center = createWebsiteCallCenter({
 });
 ```
 
-Read `references/integration.md` for copy-in steps.
+Read `references/integration.md` before wiring the SDK into the page.
 Read `references/verification.md` before claiming completion.
 
 ## Scenario catalog rule
@@ -76,6 +74,7 @@ Keep these fields separate:
 - No large model binary was committed.
 - User sees first-download/model progress.
 - Text fallback works without microphone permission.
+- Stop ends assistant speech while the assistant is speaking.
 - Local scenarios are discoverable in YAML source files or a documented backend workflow.
 - Assistant actions are registered callbacks, not arbitrary generated code.
 - Browser smoke covers the real page or the vanilla template.
