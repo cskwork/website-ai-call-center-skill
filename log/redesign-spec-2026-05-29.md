@@ -3,7 +3,7 @@
 Authoritative contract for the website-ai-call-center-skill upgrade. Every implementer agent
 keys off THIS file. Do not invent alternate key names, option names, or locales.
 
-Repo root: `/Users/danny/website-ai-call-center-skill`
+Repo root: `~/website-ai-call-center-skill`
 
 ## 0. Hard constraints (non-negotiable)
 

@@ -11,7 +11,7 @@ No i18n layer exists yet (`src/i18n/*` is absent). All UI strings are hardcoded 
 ## CRITICAL
 
 ### C1. Fragile `this`-binding in overlay methods (spec §2.3 explicitly bans this)
-File: `/Users/danny/website-ai-call-center-skill/src/ui/overlay.js`
+File: `/Users/<user>/website-ai-call-center-skill/src/ui/overlay.js`
 
 `setState` (L73), `setOpen` (L63), `setProgress` (L79), `addMessage` (L86), `setActions` (L93),
 `setTranscript` (L98) all read `this.root` / `this?.root`. They only work when invoked as a method
@@ -37,7 +37,7 @@ never referenced. This is required by spec §2.3 ("Prefer closure capture of `ro
 `destroy`).
 
 ### C2. No unhandled-error handling for `setActions`/`addMessage` when assistant response is malformed
-File: `/Users/danny/website-ai-call-center-skill/src/core/create-call-center.js` L45-52
+File: `/Users/<user>/website-ai-call-center-skill/src/core/create-call-center.js` L45-52
 
 `handleAssistant` does `overlay.addMessage('assistant', response.text)` and
 `overlay.setActions(response.actions || [])` with no guard that `response` is non-null. If an engine
@@ -73,7 +73,7 @@ JSDoc (typedefs + two `@returns`). The following exports have NONE and must get 
 - `src/storage/opfs-cache.js`: `createOpfsCache`
 
 ### H2. WASM STT `prepare()` caches a rejected promise — no recovery, no degradation
-File: `/Users/danny/website-ai-call-center-skill/src/stt/wasm-stt-adapter.js` L24-31
+File: `/Users/<user>/website-ai-call-center-skill/src/stt/wasm-stt-adapter.js` L24-31
 
 ```
 async function prepare(onProgress = report) {
@@ -95,8 +95,8 @@ Fix: on rejection, null out `ready`/`worker` so a subsequent attempt can retry; 
 the caller; consider an optional STT fallback mirroring the TTS pattern.
 
 ### H3. `startVoice` transitions to `listening` BEFORE `getUserMedia` resolves; permission denial corrupts state
-File: `/Users/danny/website-ai-call-center-skill/src/core/create-call-center.js` L24-27 +
-`/Users/danny/website-ai-call-center-skill/src/stt/wasm-stt-adapter.js` L33-41
+File: `/Users/<user>/website-ai-call-center-skill/src/core/create-call-center.js` L24-27 +
+`/Users/<user>/website-ai-call-center-skill/src/stt/wasm-stt-adapter.js` L33-41
 
 `startVoice` calls `machine.transition('listening')` then `await stt.start(...)`. Inside `stt.start`,
 `navigator.mediaDevices.getUserMedia` can reject (user denies mic, insecure context). The rejection
@@ -107,7 +107,7 @@ resolves, or revert on failure. At minimum document the ordering. Also: `getUser
 single most common runtime failure and deserves a specific, localized error message (spec status.error).
 
 ### H4. `onAction` reads `overlay.root.ownerDocument` with no null guard after destroy
-File: `/Users/danny/website-ai-call-center-skill/src/core/create-call-center.js` L60-63
+File: `/Users/<user>/website-ai-call-center-skill/src/core/create-call-center.js` L60-63
 
 `actions.execute(id, { document: overlay.root.ownerDocument, overlay })`. After `destroy()` removes the
 root from the DOM, `overlay.root` still exists (the detached node), so `ownerDocument` is non-null —
@@ -115,7 +115,7 @@ generally OK. But if a custom overlay returns `root: null` or destroy nulls it (
 §2.3), this throws. Guard with `overlay.root?.ownerDocument ?? globalThis.document`.
 
 ### H5. `safe-actions.execute` does not catch errors thrown by user `run()` functions
-File: `/Users/danny/website-ai-call-center-skill/src/actions/safe-actions.js` L16-22
+File: `/Users/<user>/website-ai-call-center-skill/src/actions/safe-actions.js` L16-22
 
 ```
 await entry.run({ ...context, action });
@@ -134,14 +134,14 @@ boundary (user-supplied callback) and must handle failures explicitly (coding-st
 ## MEDIUM
 
 ### M1. `stopVoice` assumes `stt.stop()` returns an object; null/undefined throws
-File: `/Users/danny/website-ai-call-center-skill/src/core/create-call-center.js` L29-34
+File: `/Users/<user>/website-ai-call-center-skill/src/core/create-call-center.js` L29-34
 
 `const result = await stt.stop(); overlay.setTranscript(result.text || '');` — a custom STT adapter that
 returns `undefined` makes `result.text` throw. The repo's own `noop` and `wasm` adapters always return an
 object, but this is a public adapter boundary. Normalize: `const result = (await stt.stop()) || {};`.
 
 ### M2. `local-rule-engine.sendUserText` ignores the `context` argument it is documented to receive
-File: `/Users/danny/website-ai-call-center-skill/src/engine/local-rule-engine.js` L18
+File: `/Users/<user>/website-ai-call-center-skill/src/engine/local-rule-engine.js` L18
 
 `create-call-center` calls `engine.sendUserText(clean, { state: machine.getState() })`, but the local
 engine's signature is `sendUserText(text)` — the context is silently dropped. Not a bug today, but the
@@ -149,7 +149,7 @@ inconsistency with `http-engine-adapter` (`sendUserText(text, context = {})`) is
 signature explicit (`sendUserText(text, context = {})`) even if unused, for contract symmetry.
 
 ### M3. `state-machine` allows `idle → thinking` and `idle → listening`, skipping `preparing`
-File: `/Users/danny/website-ai-call-center-skill/src/core/state-machine.js` L2
+File: `/Users/<user>/website-ai-call-center-skill/src/core/state-machine.js` L2
 
 `idle: ['preparing', 'listening', 'thinking', 'ended', 'error']`. `sendText` does
 `machine.transition('thinking')` directly from idle without ever preparing. That is intentional for the
@@ -159,7 +159,7 @@ permits text-from-idle by design. No change required, but the new `setControls({
 must NOT assume `state` reflects preparedness.
 
 ### M4. `escapeHtml`/`escapeAttr` exist but most static markup is built with raw template strings
-File: `/Users/danny/website-ai-call-center-skill/src/ui/overlay.js` L14-32, L110-116
+File: `/Users/<user>/website-ai-call-center-skill/src/ui/overlay.js` L14-32, L110-116
 
 Only `title` is escaped (L17-18). The rest of `markup()` is trusted static HTML — acceptable per spec §0
 ("SVG/static markup may use template strings"). When i18n lands, ALL localized strings injected into
@@ -169,14 +169,14 @@ Current `addMessage` (L86-91, textContent) and `setActions`/`actionButton` (L102
 correct models to follow. Keep them.
 
 ### M5. `setProgress` always renders the bar; spec wants it hidden unless preparing or 0<progress<100
-File: `/Users/danny/website-ai-call-center-skill/src/ui/overlay.js` L79-84 + `overlay.css` L132-151
+File: `/Users/<user>/website-ai-call-center-skill/src/ui/overlay.js` L79-84 + `overlay.css` L132-151
 
 The progress bar `.waicc-progress` is always present in markup and visible. Spec §2.3 layout requires it
 "visible only while preparing or 0<progress<100". Current code only sets width; it never toggles
 visibility. Add a hidden/visible toggle keyed on state+progress.
 
 ### M6. `opfs-cache.match` swallows all errors as cache-miss (broad `catch {}`)
-File: `/Users/danny/website-ai-call-center-skill/src/storage/opfs-cache.js` L33-42 and `stt-worker.js` L63
+File: `/Users/<user>/website-ai-call-center-skill/src/storage/opfs-cache.js` L33-42 and `stt-worker.js` L63
 
 `match()` catches everything and returns `undefined` (cache miss). A genuine read corruption is
 indistinguishable from "not cached". Acceptable for a cache (fail-open to network), but per
@@ -189,7 +189,7 @@ back silently — fine functionally, opaque operationally.
 ## LOW / INFO
 
 ### L1. `createEventBus.emit` mutates nothing but spreads payload each call — fine; no listener error isolation
-File: `/Users/danny/website-ai-call-center-skill/src/core/events.js` L14-19
+File: `/Users/<user>/website-ai-call-center-skill/src/core/events.js` L14-19
 
 If one listener throws, the loop aborts and remaining listeners (including `'*'`) never fire. Consider
 wrapping each `listener(event)` in try/catch so a single bad subscriber cannot break event fan-out.
@@ -200,28 +200,28 @@ wrapping each `listener(event)` in try/catch so a single bad subscriber cannot b
 but `progress: undefined` into `0` and a legitimately falsy-but-valid value is fine. No action.
 
 ### L3. `wasm-stt-adapter.createRecorder` references global `MediaRecorder` without existence check
-File: `/Users/danny/website-ai-call-center-skill/src/stt/wasm-stt-adapter.js` L97-100
+File: `/Users/<user>/website-ai-call-center-skill/src/stt/wasm-stt-adapter.js` L97-100
 
 `MediaRecorder.isTypeSupported?.(...)` then `new MediaRecorder(...)`. If `MediaRecorder` is undefined
 (old/SSR), this is a ReferenceError, not a clean adapter error. Guard with
 `if (typeof MediaRecorder === 'undefined') throw new Error('MediaRecorder unavailable.')`.
 
 ### L4. `piper-tts-adapter.prepare` returns `undefined` on success but `ready` (a promise) is cached
-File: `/Users/danny/website-ai-call-center-skill/src/tts/piper-tts-adapter.js` L34-48
+File: `/Users/<user>/website-ai-call-center-skill/src/tts/piper-tts-adapter.js` L34-48
 
 On the happy path `prepare` returns `undefined` (it `await ready` then falls off). On the second call it
 returns `ready` (a resolved promise) at L36. Slight return-type inconsistency (sometimes `undefined`,
 sometimes a `Promise`). Harmless since callers `await` it, but worth normalizing to always return `ready`.
 
 ### L5. `selectScenario` sort is not stable across equal scores
-File: `/Users/danny/website-ai-call-center-engine/...` → `src/engine/local-rule-engine.js` L35-41
+File: `/Users/<user>/website-ai-call-center-engine/...` → `src/engine/local-rule-engine.js` L35-41
 
 Ties resolve by V8's sort stability (stable in modern engines) but ordering of equal-score scenarios is
 implicit. For determinism across the new union-`terms` matching (scenario agent's change), document or
 add a tiebreak (e.g. scenario index). Info only — SDK agent does not own scenarios.
 
 ### L6. `index.js` re-exports everything via `export * from './api.js'`
-File: `/Users/danny/website-ai-call-center-skill/src/index.js` L2
+File: `/Users/<user>/website-ai-call-center-skill/src/index.js` L2
 
 Fine, but note: when §2.5 adds `createUiStrings`, `resolveLocale`, `UI_STRINGS`, `UI_LOCALES`,
 `DEFAULT_LOCALE`, `controlsForState` to `api.js`, they automatically surface through `index.js`. No
